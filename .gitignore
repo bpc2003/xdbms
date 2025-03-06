@@ -1,0 +1,10 @@
+# embedded db files
+*.db
+*.db~
+
+# compiled files
+*.out
+*.o
+
+# lsp
+.ccls-cache
