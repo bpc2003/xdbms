@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "include/fileops.h"
+#include "include/parser.h"
 
 int main(int argc, char **argv)
 {
@@ -13,12 +14,12 @@ int main(int argc, char **argv)
   uint8_t *buf = readdb(filename);
   if (buf == NULL)
     exit(0);
-
-  printf("[ ");
-  for (int i = 0; buf[i]; ++i) {
-    printf("%d ", buf[i]);
+  struct byte *bytes = parse(buf);
+  for (int i = 0; i < blen; ++i) {
+    printf("%d\n", bytes[i].type);
   }
-  printf("]\n");
+
+  free(bytes);
   free(buf);
   exit(0);
 }
