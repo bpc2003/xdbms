@@ -4,9 +4,11 @@
 
 #include "include/fileops.h"
 #include "include/parser.h"
+#include "include/keytab.h"
 
 int main(int argc, char **argv)
 {
+  struct keytab tab[TABLEN] = {{ NULL, 0, { 0 } }};
   if (argc != 2)
     exit(1);
   char *filename = argv[1];
@@ -20,13 +22,11 @@ int main(int argc, char **argv)
   for (int i = 0; i < blen; ++i) {
     switch (bytes[i].type) {
       case BEGIN:
-        printf("BEGIN\n");
         break;
       case END:
-        printf("END\n");
         break;
       case PAIR:
-        printf("PAIR: %s\n", bytes[i].value);
+        setkey(tab, bytes[i].value);
         free(bytes[i].value);
         break;
       case ERROR:
@@ -35,6 +35,19 @@ int main(int argc, char **argv)
     }
   }
 
+  int *indexes = getkeys(tab);
+  for (int i = 0; indexes[i] != 0; ++i) {
+    printf("%s: ", tab[indexes[i]].key);
+    if (tab[indexes[i]].flag == 1) {
+      printf("%.2lf\n", tab[indexes[i]].v.num);
+    } else if (tab[indexes[i]].flag == 2) {
+      printf("%d\n", tab[indexes[i]].v.b);
+    } else if (tab[indexes[i]].flag == 3) {
+      printf("%s\n", tab[indexes[i]].v.str);
+    }
+    free(tab[indexes[i]].key);
+  }
+  free(indexes);
   free(bytes);
   exit(0);
 }
