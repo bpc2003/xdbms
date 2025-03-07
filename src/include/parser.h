@@ -5,11 +5,9 @@ extern int blen;
 
 enum btype {
   BEGIN = 1,
-  END, OBJ,
+  END, PAIR,
 
-  COLON,
-
-  IDENTIFIER, VALUE
+  ERROR
 };
 
 struct byte {

@@ -15,11 +15,26 @@ int main(int argc, char **argv)
   if (buf == NULL)
     exit(0);
   struct byte *bytes = parse(buf);
+  free(buf);
+
   for (int i = 0; i < blen; ++i) {
-    printf("%d\n", bytes[i].type);
+    switch (bytes[i].type) {
+      case BEGIN:
+        printf("BEGIN\n");
+        break;
+      case END:
+        printf("END\n");
+        break;
+      case PAIR:
+        printf("PAIR: %s\n", bytes[i].value);
+        free(bytes[i].value);
+        break;
+      case ERROR:
+        fprintf(stderr, "%s\n", bytes[i].value);
+        exit(1);
+    }
   }
 
   free(bytes);
-  free(buf);
   exit(0);
 }
