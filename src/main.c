@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     } else if (tab[indexes[i]].flag == 3) {
       printf("%s\n", tab[indexes[i]].v.str);
     }
-    free(tab[indexes[i]].key);
+    delkey(tab, tab[indexes[i]].key);
   }
   free(indexes);
   free(bytes);

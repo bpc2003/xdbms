@@ -37,20 +37,15 @@ struct keytab getkey(struct keytab *tab, char *key)
 
 void setkey(struct keytab *tab, char *pair)
 {
-  char *tmp = calloc(strlen(pair) + 1, sizeof(char));
-  strcpy(tmp, pair);
   char *tok = strtok(pair, ":");
-  if (!strcmp(tmp, tok)) {
-    fprintf(stderr, "Invalid key-value pair: %s\n", tmp);
-    free(tmp);
-    return;
-  }
-  free(tmp);
-
   char *key = calloc(strlen(tok) + 1, sizeof(char));
   strcpy(key, tok);
 
   tok = strtok(NULL, ":");
+  if (tok == NULL) {
+    fprintf(stderr, "Invalid key-value pair\n");
+    return;
+  }
   union value v;
   int flag;
   if (isdigit(*tok)) {
@@ -80,7 +75,25 @@ void setkey(struct keytab *tab, char *pair)
   tab[idx].flag = flag;
 }
 
-int hash(char *key)
+void delkey(struct keytab *tab, char *key)
+{
+  int idx = hash(key);
+  while (strcmp(tab[idx].key, key) && idx < TABLEN)
+    idx++;
+  if (idx >= TABLEN) {
+    fprintf(stderr, "Invalid key: %s\n", key);
+    return;
+  }
+  free(tab[idx].key);
+  tab[idx].key = NULL;
+  if (tab[idx].flag == 3) {
+    free(tab[idx].v.str);
+    tab[idx].v.str = NULL;
+  }
+  tab[idx].flag = 0;
+}
+
+static int hash(char *key)
 {
   unsigned long h = 5381;
   for (int i = 0; i < strlen(key); ++i)
