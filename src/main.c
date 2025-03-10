@@ -8,7 +8,9 @@
 
 int main(int argc, char **argv)
 {
-  struct keytab tab[TABLEN] = {{ NULL, 0, { 0 } }};
+  int open = 0;
+  int len = 2;
+  struct keytablist *list = calloc(len, sizeof(struct keytablist));
   if (argc != 2)
     exit(1);
   char *filename = argv[1];
@@ -19,14 +21,26 @@ int main(int argc, char **argv)
   struct byte *bytes = parse(buf);
   free(buf);
 
-  for (int i = 0; i < blen; ++i) {
+  for (int i = 0, j = 0; i < blen; ++i) {
     switch (bytes[i].type) {
       case BEGIN:
+        if (j >= len) {
+          len *= 2;
+          list = realloc(list, len * sizeof(struct keytablist));
+        }
+        if (open == 1) {
+          fprintf(stderr, "missing close!\n");
+          free(bytes);
+          exit(1);
+        }
+        open = 1;
         break;
       case END:
+        open = 0;
+        j++;
         break;
       case PAIR:
-        setkey(tab, bytes[i].value);
+        setkey(list, j, bytes[i].value);
         free(bytes[i].value);
         break;
       case ERROR:
@@ -35,19 +49,27 @@ int main(int argc, char **argv)
     }
   }
 
-  int *indexes = getkeys(tab);
-  for (int i = 0; indexes[i] != 0; ++i) {
-    printf("%s: ", tab[indexes[i]].key);
-    if (tab[indexes[i]].flag == 1) {
-      printf("%.2lf\n", tab[indexes[i]].v.num);
-    } else if (tab[indexes[i]].flag == 2) {
-      printf("%d\n", tab[indexes[i]].v.b);
-    } else if (tab[indexes[i]].flag == 3) {
-      printf("%s\n", tab[indexes[i]].v.str);
+  for (int i = 0; i < len; ++i) {
+    int *indexes = getkeys(list, i);
+    for (int j = 0; indexes[j]; ++j) {
+      printf("%s: ", list[i].tab[indexes[j]].key);
+      switch (list[i].tab[indexes[j]].flag) {
+        case 1:
+          printf("%.2lf\n", list[i].tab[indexes[j]].v.num);
+          break;
+        case 2:
+          printf("%d\n", list[i].tab[indexes[j]].v.b);
+          break;
+        case 3:
+          printf("%s\n", list[i].tab[indexes[j]].v.str);
+          break;
+      }
+      delkey(list, i, list[i].tab[indexes[j]].key);
     }
-    delkey(tab, tab[indexes[i]].key);
+    free(indexes);
   }
-  free(indexes);
+
+  free(list);
   free(bytes);
   exit(0);
 }

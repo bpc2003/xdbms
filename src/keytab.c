@@ -7,7 +7,7 @@
 
 static int hash(char *key);
 
-int *getkeys(struct keytab *tab)
+int *getkeys(struct keytablist *list, int id)
 {
   int len = 2;
   int *indexes = calloc(len, sizeof(int));
@@ -16,26 +16,26 @@ int *getkeys(struct keytab *tab)
       indexes = realloc(indexes, ++len * sizeof(int));
       indexes[len - 1] = 0;
     }
-    if (tab[i].key)
+    if (list[id].tab[i].key)
       indexes[j++] = i;
   }
   return indexes;
 }
 
-struct keytab getkey(struct keytab *tab, char *key)
+struct keytab getkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);
-  if (tab[idx].key == NULL)
-    return (struct keytab) { .key = NULL, .v = 0 };
+  if (list[id].tab[idx].key == NULL)
+    return (struct keytab) { .key = NULL, .flag = 0, .v = 0 };
 
-  while (strcmp(tab[idx].key, key) && idx < TABLEN)
+  while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN)
-    return (struct keytab) { .key = NULL, .v = 0 };
-  return tab[idx];
+    return (struct keytab) { .key = NULL, .flag = 0, .v = 0 };
+  return list[id].tab[idx];
 }
 
-void setkey(struct keytab *tab, char *pair)
+void setkey(struct keytablist *list, int id, char *pair)
 {
   char *tok = strtok(pair, ":");
   char *key = calloc(strlen(tok) + 1, sizeof(char));
@@ -61,36 +61,36 @@ void setkey(struct keytab *tab, char *pair)
   }
 
   int idx = hash(key);
-  while (tab[idx].key != NULL && strcmp(tab[idx].key, key) && idx < TABLEN)
+  while (list[id].tab[idx].key != NULL && strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN) {
     fprintf(stderr, "No more room in table\n");
     return;
   }
-  if (!tab[idx].key)
-    tab[idx].key = key;
+  if (!list[id].tab[idx].key)
+    list[id].tab[idx].key = key;
   else
     free(key);
-  tab[idx].v = v;
-  tab[idx].flag = flag;
+  list[id].tab[idx].v = v;
+  list[id].tab[idx].flag = flag;
 }
 
-void delkey(struct keytab *tab, char *key)
+void delkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);
-  while (strcmp(tab[idx].key, key) && idx < TABLEN)
+  while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN) {
     fprintf(stderr, "Invalid key: %s\n", key);
     return;
   }
-  free(tab[idx].key);
-  tab[idx].key = NULL;
-  if (tab[idx].flag == 3) {
-    free(tab[idx].v.str);
-    tab[idx].v.str = NULL;
+  free(list[id].tab[idx].key);
+  list[id].tab[idx].key = NULL;
+  if (list[id].tab[idx].flag == 3) {
+    free(list[id].tab[idx].v.str);
+    list[id].tab[idx].v.str = NULL;
   }
-  tab[idx].flag = 0;
+  list[id].tab[idx].flag = 0;
 }
 
 static int hash(char *key)

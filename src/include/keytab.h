@@ -15,9 +15,14 @@ struct keytab {
   union value v;
 };
 
-int *getkeys(struct keytab *tab);
-struct keytab getkey(struct keytab *tab, char *key);
-void setkey(struct keytab *tab, char *pair);
-void delkey(struct keytab *tab, char *key);
+struct keytablist {
+  struct keytab tab[TABLEN];
+};
+
+int *getkeys(struct keytablist *list, int id);
+struct keytab getkey(struct keytablist *list, int id, char *key);
+// TODO: rewrite setkey to take len as an argument
+void setkey(struct keytablist *list, int id, char *pair);
+void delkey(struct keytablist *list, int id, char *key);
 
 #endif
