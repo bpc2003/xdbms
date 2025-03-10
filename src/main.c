@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     }
   }
 
+  writedb(filename, list, len);
   for (int i = 0; i < len; ++i) {
     int *indexes = getkeys(list, i);
     for (int j = 0; indexes[j]; ++j) {

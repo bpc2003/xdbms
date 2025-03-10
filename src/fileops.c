@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "include/fileops.h"
+#include "include/keytab.h"
 
 uint8_t *readdb(char *filename)
 {
@@ -25,4 +26,29 @@ uint8_t *readdb(char *filename)
 
   fclose(fp);
   return buf;
+}
+
+void writedb(char *filename, struct keytablist *list, int len)
+{
+  FILE *fp = fopen(filename, "wb");
+  for (int i = 0; i < len; ++i) {
+    fprintf(fp, "\xfb");
+    int *indexes = getkeys(list, i);
+    for (int j = 0; indexes[j]; ++j) {
+      fprintf(fp, "\xfa%s:", list[i].tab[indexes[j]].key);
+      switch (list[i].tab[indexes[j]].flag) {
+        case 1:
+          fprintf(fp, "%.2lf", list[i].tab[indexes[j]].v.num);
+          break;
+        case 2:
+          fprintf(fp, "%s", list[i].tab[indexes[j]].v.b == 1 ? "true" : "false");
+          break;
+        case 3:
+          fprintf(fp, "%s", list[i].tab[indexes[j]].v.str);
+          break;
+      }
+    }
+    free(indexes);
+    fprintf(fp, "\xfe");
+  }
 }
