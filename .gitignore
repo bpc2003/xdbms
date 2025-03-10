@@ -5,6 +5,8 @@
 # compiled files
 *.out
 *.o
+*.a
+*.so
 
 # lsp
 .ccls-cache

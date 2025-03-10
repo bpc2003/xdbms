@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "include/mdb.h"
+#include "mdb.h"
 
 static const struct keytablist empty;
 

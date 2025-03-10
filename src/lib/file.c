@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include/mdb.h"
+#include "mdb.h"
 
 static char *getpair(int *c, FILE *fp);
 
