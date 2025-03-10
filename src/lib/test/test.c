@@ -2,16 +2,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "src/mdb.h"
+#include "../mdb.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
-  if (argc != 2)
-    exit(1);
-  char *filename = argv[1];
+  char *filename = "test.db";
   struct keytablist *list = readdb(filename);
   if (list == NULL)
-    exit(2);
+    exit(1);
 
   writedb(filename, list);
   for (int i = 0; i < list[0].len; ++i) {
