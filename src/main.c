@@ -6,45 +6,15 @@
 
 int main(int argc, char **argv)
 {
-  int open = 0;
-  int len = 2;
-  struct keytablist *list = calloc(len, sizeof(struct keytablist));
   if (argc != 2)
     exit(1);
   char *filename = argv[1];
+  struct keytablist *list = readdb(filename);
+  if (list == NULL)
+    exit(2);
 
-  uint8_t *buf = readdb(filename);
-  if (buf == NULL)
-    exit(0);
-  struct byte *bytes = parse(buf);
-  free(buf);
-
-  for (int i = 0, j = 0; i < blen; ++i) {
-    switch (bytes[i].type) {
-      case BEGIN:
-        if (open == 1) {
-          fprintf(stderr, "missing close!\n");
-          free(bytes);
-          exit(1);
-        }
-        open = 1;
-        break;
-      case END:
-        open = 0;
-        j++;
-        break;
-      case PAIR:
-        setkey(&list, &len, j, bytes[i].value);
-        free(bytes[i].value);
-        break;
-      case ERROR:
-        fprintf(stderr, "%s\n", bytes[i].value);
-        exit(1);
-    }
-  }
-
-  writedb(filename, list, len);
-  for (int i = 0; i < len; ++i) {
+  writedb(filename, list);
+  for (int i = 0; i < list[0].len; ++i) {
     int *indexes = getkeys(list, i);
     for (int j = 0; indexes[j]; ++j) {
       printf("%s: ", list[i].tab[indexes[j]].key);
@@ -65,6 +35,5 @@ int main(int argc, char **argv)
   }
 
   free(list);
-  free(bytes);
   exit(0);
 }

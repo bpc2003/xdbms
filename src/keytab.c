@@ -5,6 +5,8 @@
 
 #include "include/mdb.h"
 
+static const struct keytablist empty;
+
 static int hash(char *key);
 
 int *getkeys(struct keytablist *list, int id)
@@ -35,11 +37,14 @@ struct keytab getkey(struct keytablist *list, int id, char *key)
   return list[id].tab[idx];
 }
 
-void setkey(struct keytablist **list, int *len, int id, char *pair)
+int setkey(struct keytablist **list, int *len, int id, char *pair)
 {
   if (id >= *len) {
-    *len += (id - *len) + 1;
-    *list = realloc(*list, (*len) * sizeof(struct keytablist));
+    *list = realloc(*list, (id + 1) * sizeof(struct keytablist));
+    for (int i = *len; i <= id; ++i)
+      (*list)[i] = empty;
+    *len = id + 1;
+    (*list)[0].len = *len;
   }
   char *tok = strtok(pair, ":");
   char *key = calloc(strlen(tok) + 1, sizeof(char));
@@ -48,7 +53,7 @@ void setkey(struct keytablist **list, int *len, int id, char *pair)
   tok = strtok(NULL, ":");
   if (tok == NULL) {
     fprintf(stderr, "Invalid key-value pair\n");
-    return;
+    return 1;
   }
   union value v;
   int flag;
@@ -67,11 +72,10 @@ void setkey(struct keytablist **list, int *len, int id, char *pair)
   int idx = hash(key);
   while ((*list)[id].tab[idx].key != NULL &&
     strcmp((*list)[id].tab[idx].key, key) &&
-    idx < TABLEN)
-    idx++;
+    idx < TABLEN) idx++;
   if (idx >= TABLEN) {
     fprintf(stderr, "No more room in table\n");
-    return;
+    return 2;
   }
   if (!(*list)[id].tab[idx].key)
     (*list)[id].tab[idx].key = key;
@@ -79,6 +83,7 @@ void setkey(struct keytablist **list, int *len, int id, char *pair)
     free(key);
   (*list)[id].tab[idx].v = v;
   (*list)[id].tab[idx].flag = flag;
+  return 0;
 }
 
 void delkey(struct keytablist *list, int id, char *key)
