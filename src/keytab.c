@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "include/keytab.h"
+#include "include/mdb.h"
 
 static int hash(char *key);
 

@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "include/fileops.h"
-#include "include/keytab.h"
+#include "include/mdb.h"
 
 uint8_t *readdb(char *filename)
 {

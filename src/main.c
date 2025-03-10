@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "include/fileops.h"
-#include "include/parser.h"
-#include "include/keytab.h"
+#include "include/mdb.h"
 
 int main(int argc, char **argv)
 {
