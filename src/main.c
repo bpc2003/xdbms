@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   if (argc != 2)
     exit(1);
   char *filename = argv[1];
-  
+
   uint8_t *buf = readdb(filename);
   if (buf == NULL)
     exit(0);
@@ -24,10 +24,6 @@ int main(int argc, char **argv)
   for (int i = 0, j = 0; i < blen; ++i) {
     switch (bytes[i].type) {
       case BEGIN:
-        if (j >= len) {
-          len *= 2;
-          list = realloc(list, len * sizeof(struct keytablist));
-        }
         if (open == 1) {
           fprintf(stderr, "missing close!\n");
           free(bytes);
@@ -40,7 +36,7 @@ int main(int argc, char **argv)
         j++;
         break;
       case PAIR:
-        setkey(list, j, bytes[i].value);
+        setkey(&list, &len, j, bytes[i].value);
         free(bytes[i].value);
         break;
       case ERROR:

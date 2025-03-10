@@ -21,8 +21,7 @@ struct keytablist {
 
 int *getkeys(struct keytablist *list, int id);
 struct keytab getkey(struct keytablist *list, int id, char *key);
-// TODO: rewrite setkey to take len as an argument
-void setkey(struct keytablist *list, int id, char *pair);
+void setkey(struct keytablist **list, int *len, int id, char *pair);
 void delkey(struct keytablist *list, int id, char *key);
 
 #endif

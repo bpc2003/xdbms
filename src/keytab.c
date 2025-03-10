@@ -35,8 +35,12 @@ struct keytab getkey(struct keytablist *list, int id, char *key)
   return list[id].tab[idx];
 }
 
-void setkey(struct keytablist *list, int id, char *pair)
+void setkey(struct keytablist **list, int *len, int id, char *pair)
 {
+  if (id >= *len) {
+    *len += (id - *len) + 1;
+    *list = realloc(*list, (*len) * sizeof(struct keytablist));
+  }
   char *tok = strtok(pair, ":");
   char *key = calloc(strlen(tok) + 1, sizeof(char));
   strcpy(key, tok);
@@ -61,18 +65,20 @@ void setkey(struct keytablist *list, int id, char *pair)
   }
 
   int idx = hash(key);
-  while (list[id].tab[idx].key != NULL && strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
+  while ((*list)[id].tab[idx].key != NULL &&
+    strcmp((*list)[id].tab[idx].key, key) &&
+    idx < TABLEN)
     idx++;
   if (idx >= TABLEN) {
     fprintf(stderr, "No more room in table\n");
     return;
   }
-  if (!list[id].tab[idx].key)
-    list[id].tab[idx].key = key;
+  if (!(*list)[id].tab[idx].key)
+    (*list)[id].tab[idx].key = key;
   else
     free(key);
-  list[id].tab[idx].v = v;
-  list[id].tab[idx].flag = flag;
+  (*list)[id].tab[idx].v = v;
+  (*list)[id].tab[idx].flag = flag;
 }
 
 void delkey(struct keytablist *list, int id, char *key)
