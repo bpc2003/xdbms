@@ -32,9 +32,18 @@ int main(int argc, char **argv)
         printf("ERR\n");
         break;
     }
+    printf("%s\n", evaled.selector);
+    free(evaled.selector);
   }
 
   free(cmd);
+  writedb(filename, list);
+  for (int i = 0; i < list[0].len; ++i) {
+    int *indexes = getkeys(list, i);
+    for (int j = 0; indexes[j]; ++j)
+      delkey(list, i, list[i].tab[indexes[j]].key);
+    free(indexes);
+  }
   free(list);
   exit(0);
 }
