@@ -4,7 +4,7 @@
 #include "cmd.h"
 
 char *getselector(char *str);
-char **getparams(char *str);
+char **getparams(char *str, int *len);
 
 struct cmd eval(char *str)
 {
@@ -23,7 +23,7 @@ struct cmd eval(char *str)
   }
 
   ret.selector = getselector(str);
-  ret.params = getparams(str);
+  ret.params = getparams(str, &ret.plen);
   return ret;
 }
 
@@ -42,7 +42,7 @@ char *getselector(char *str)
   return selector;
 }
 
-char **getparams(char *str)
+char **getparams(char *str, int *len)
 {
   char **params = calloc(1, sizeof(char *));
   char *tok = strtok(str, "/");
@@ -53,5 +53,10 @@ char **getparams(char *str)
     params[i] = calloc(strlen(tok) + 1, sizeof(char));
     strcpy(params[i++], tok);
   }
+  if (i == 0) {
+    free(params);
+    return NULL;
+  }
+  *len = i;
   return params;
 }

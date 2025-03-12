@@ -33,11 +33,13 @@ int main(int argc, char **argv)
         break;
     }
     printf("%s\n", evaled.selector);
-    for (int i = 0; evaled.params[i]; ++i) {
-      printf("%s\n", evaled.params[i]);
-      free(evaled.params[i]);
+    if (evaled.params != NULL) {
+      for (int i = 0; i < evaled.plen; ++i) {
+        printf("%s\n", evaled.params[i]);
+        free(evaled.params[i]);
+      }
+      free(evaled.params);
     }
-    free(evaled.params);
     free(evaled.selector);
   }
   free(cmd);

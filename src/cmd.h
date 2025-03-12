@@ -9,6 +9,7 @@ enum cmdtype {
 struct cmd {
   enum cmdtype type;
   char *selector;
+  int plen;
   char **params;
 };
 
