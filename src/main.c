@@ -33,9 +33,13 @@ int main(int argc, char **argv)
         break;
     }
     printf("%s\n", evaled.selector);
+    for (int i = 0; evaled.params[i]; ++i) {
+      printf("%s\n", evaled.params[i]);
+      free(evaled.params[i]);
+    }
+    free(evaled.params);
     free(evaled.selector);
   }
-
   free(cmd);
   writedb(filename, list);
   for (int i = 0; i < list[0].len; ++i) {
