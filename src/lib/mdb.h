@@ -22,7 +22,7 @@ struct keytablist {
 
 int *getkeys(struct keytablist *list, int id);
 struct keytab getkey(struct keytablist *list, int id, char *key);
-int setkey(struct keytablist **list, int *len, int id, char *pair);
+int setkey(struct keytablist **list, int id, char *pair);
 void delkey(struct keytablist *list, int id, char *key);
 
 struct keytablist *readdb(char *filename);

@@ -8,6 +8,7 @@
 int getrange(char *selector);
 void printkeys(struct keytablist *list, int id, char **keys, int klen);
 void setkeys(struct keytablist **list, int id, char **pairs, int plen);
+void delkeys(struct keytablist *list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
 {
@@ -41,6 +42,12 @@ int main(int argc, char **argv)
         }
         break;
       case DEL:
+        if (range >= 0)
+          delkeys(list, range, evaled.params, evaled.plen);
+        else if (range == -1) {
+          for (int i = 0; i < list[0].len; ++i)
+            delkeys(list, i, evaled.params, evaled.plen);
+        }
         break;
       case ERR:
         fprintf(stderr, "Unkown command: %s\n", cmd);
@@ -129,7 +136,15 @@ void setkeys(struct keytablist **list, int id, char **pairs, int plen)
   for (int i = 0; i < plen; ++i) {
     char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
     strcpy(tmp, pairs[i]);
-    setkey(list, &(list[0]->len), id, tmp);
+    setkey(list, id, tmp);
     free(tmp);
   }
+}
+
+void delkeys(struct keytablist *list, int id, char **keys, int klen)
+{
+  if (keys == NULL)
+    return;
+  for (int i = 0; i < klen; ++i)
+    delkey(list, id, keys[i]);
 }

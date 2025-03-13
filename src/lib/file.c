@@ -10,6 +10,7 @@ struct keytablist *readdb(char *filename)
 {
   int len = 2;
   struct keytablist *list = calloc(len, sizeof(struct keytablist));
+  list[0].len = len;
   FILE *fp = fopen(filename, "rb");
   if (fp == NULL)
     return list;
@@ -24,7 +25,7 @@ struct keytablist *readdb(char *filename)
           fprintf(stderr, "missing pair closing byte!\n");
           return NULL;
         }
-        setkey(&list, &len, i, p);
+        setkey(&list, i, p);
         free(p);
         break;
       case 251:

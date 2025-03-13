@@ -37,14 +37,15 @@ struct keytab getkey(struct keytablist *list, int id, char *key)
   return list[id].tab[idx];
 }
 
-int setkey(struct keytablist **list, int *len, int id, char *pair)
+int setkey(struct keytablist **list, int id, char *pair)
 {
-  if (id >= *len) {
+  if (id >= (*list)[0].len) {
     *list = realloc(*list, (id + 1) * sizeof(struct keytablist));
-    for (int i = *len; i <= id; ++i)
-      (*list)[i] = empty;
-    *len = id + 1;
-    (*list)[0].len = *len;
+    for (int i = (*list)[0].len; i <= id; ++i) {
+      for (int j = 0; j < TABLEN; ++j)
+        (*list)[i].tab[j] = (struct keytab) {NULL, 0, {0}};
+    }
+    (*list)[0].len = id + 1;
   }
   char *tok = strtok(pair, ":");
   char *key = calloc(strlen(tok) + 1, sizeof(char));
@@ -89,6 +90,8 @@ int setkey(struct keytablist **list, int *len, int id, char *pair)
 void delkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);
+  if (list[id].tab[idx].key == NULL)
+    return;
   while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN) {
