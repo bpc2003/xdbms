@@ -1,5 +1,6 @@
-# backup files
-*~
+# db files
+*.db
+*.db~
 
 # compiled files
 *.out

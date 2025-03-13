@@ -7,6 +7,7 @@
 
 int getrange(char *selector);
 void printkeys(struct keytablist *list, int id, char **keys, int klen);
+void setkeys(struct keytablist **list, int id, char **pairs, int plen);
 
 int main(int argc, char **argv)
 {
@@ -32,6 +33,12 @@ int main(int argc, char **argv)
         }
         break;
       case SET:
+        if (range >= 0)
+          setkeys(&list, range, evaled.params, evaled.plen);
+        else if (range == -1) {
+          for (int i = 0; i < list[0].len; ++i)
+            setkeys(&list, i, evaled.params, evaled.plen);
+        }
         break;
       case DEL:
         break;
@@ -60,6 +67,8 @@ int main(int argc, char **argv)
 }
 
 int getrange(char *selector) {
+  if (selector == NULL)
+    return -3;
   int id;
   if (!strcmp(selector, "*"))
     return -1;
@@ -110,5 +119,17 @@ void printkeys(struct keytablist *list, int id, char **keys, int klen)
       }
     }
     printf("}\n");
+  }
+}
+
+void setkeys(struct keytablist **list, int id, char **pairs, int plen)
+{
+  if (pairs == NULL)
+    return;
+  for (int i = 0; i < plen; ++i) {
+    char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
+    strcpy(tmp, pairs[i]);
+    setkey(list, &(list[0]->len), id, tmp);
+    free(tmp);
   }
 }
