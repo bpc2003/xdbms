@@ -5,10 +5,9 @@
 
 #include "mdb.h"
 
-static const struct keytablist empty;
-
 static int hash(char *key);
 
+// getkeys - gets every single key in a key table
 int *getkeys(struct keytablist *list, int id)
 {
   int len = 2;
@@ -24,6 +23,8 @@ int *getkeys(struct keytablist *list, int id)
   return indexes;
 }
 
+// getkey - gets a single key from a keytable
+// if it can't find the key it will return an empty table index
 struct keytab getkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);
@@ -37,6 +38,8 @@ struct keytab getkey(struct keytablist *list, int id, char *key)
   return list[id].tab[idx];
 }
 
+// setkey - adds the given pair to the given key table
+// if setkey fails it will return 1 otherwise 0
 int setkey(struct keytablist **list, int id, char *pair)
 {
   if (id >= (*list)[0].len) {
@@ -87,6 +90,7 @@ int setkey(struct keytablist **list, int id, char *pair)
   return 0;
 }
 
+// delkey - removes the given key from the given key table
 void delkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);

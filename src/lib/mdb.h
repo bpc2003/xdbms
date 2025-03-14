@@ -20,11 +20,13 @@ struct keytablist {
   struct keytab tab[TABLEN];
 };
 
+// Table operations
 int *getkeys(struct keytablist *list, int id);
 struct keytab getkey(struct keytablist *list, int id, char *key);
 int setkey(struct keytablist **list, int id, char *pair);
 void delkey(struct keytablist *list, int id, char *key);
 
+// file operations
 struct keytablist *readdb(char *filename);
 void writedb(char *filename, struct keytablist *list);
 

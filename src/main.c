@@ -143,8 +143,13 @@ void setkeys(struct keytablist **list, int id, char **pairs, int plen)
 
 void delkeys(struct keytablist *list, int id, char **keys, int klen)
 {
-  if (keys == NULL)
-    return;
-  for (int i = 0; i < klen; ++i)
-    delkey(list, id, keys[i]);
+  if (keys == NULL) {
+    int *indexes = getkeys(list, id);
+    for (int i = 0; indexes[i]; ++i)
+      delkey(list, id, list[id].tab[indexes[i]].key);
+    free(indexes);
+  } else {
+    for (int i = 0; i < klen; ++i)
+      delkey(list, id, keys[i]);
+  }
 }

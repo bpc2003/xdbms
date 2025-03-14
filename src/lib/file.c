@@ -6,6 +6,9 @@
 
 static char *getpair(int *c, FILE *fp);
 
+// readdb - reads the given file into a key table list
+// if fp returns NULL it will return the empty list
+// if readdb fails it will return NULL
 struct keytablist *readdb(char *filename)
 {
   int len = 2;
@@ -48,6 +51,7 @@ struct keytablist *readdb(char *filename)
   return list;
 }
 
+// writedb - writes a keytablist to a given file
 void writedb(char *filename, struct keytablist *list)
 {
   FILE *fp = fopen(filename, "wb");
