@@ -29,12 +29,12 @@ struct keytab getkey(struct keytablist *list, int id, char *key)
 {
   int idx = hash(key);
   if (list[id].tab[idx].key == NULL)
-    return (struct keytab) { .key = NULL, .flag = 0, .v = 0 };
+    return (struct keytab) { .key = NULL, .flag = 0, .v = { 0 } };
 
   while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN)
-    return (struct keytab) { .key = NULL, .flag = 0, .v = 0 };
+    return (struct keytab) { .key = NULL, .flag = 0, .v = { 0 } };
   return list[id].tab[idx];
 }
 
@@ -83,8 +83,11 @@ int setkey(struct keytablist **list, int id, char *pair)
   }
   if (!(*list)[id].tab[idx].key)
     (*list)[id].tab[idx].key = key;
-  else
+  else {
     free(key);
+    if ((*list)[id].tab[idx].flag == 3)
+      free((*list)[id].tab[idx].v.str);
+  }
   (*list)[id].tab[idx].v = v;
   (*list)[id].tab[idx].flag = flag;
   return 0;
