@@ -2,7 +2,7 @@
 *.db
 *.db~
 
-# compiled files
+# build files
 target/
 
 # lsp

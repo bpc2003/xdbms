@@ -12,9 +12,13 @@ void delkeys(struct keytablist *list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
 {
-  if (argc != 2)
+  if (argc > 2) {
+    printf("usage: %s [db file]\n", argv[0]);
     exit(1);
-  char *filename = argv[1];
+  }
+  char *filename = NULL;
+  if (argc == 2)
+    filename = argv[1];
   struct keytablist *list = readdb(filename);
   char *cmd = calloc(1024, sizeof(char));
 
@@ -62,7 +66,8 @@ int main(int argc, char **argv)
   }
   free(cmd);
 
-  writedb(filename, list);
+  if (filename != NULL)
+    writedb(filename, list);
   for (int i = 0; i < list[0].len; ++i) {
     int *indexes = getkeys(list, i);
     for (int j = 0; indexes[j]; ++j)
