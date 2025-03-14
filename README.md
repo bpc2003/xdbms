@@ -48,4 +48,4 @@ or run:\
 ```sudo make uninstall```
 
 ## License
-This software is licensed under the BSD-2-Clause [License]("./LICENSE")
+This software is licensed under the BSD-2-Clause [License](./LICENSE)

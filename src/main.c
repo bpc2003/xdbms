@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "lib/mdb.h"
 #include "cmd.h"
 
-int getrange(char *selector);
+int getid(char *selector);
 void printkeys(struct keytablist *list, int id, char **keys, int klen);
 void setkeys(struct keytablist **list, int id, char **pairs, int plen);
 void delkeys(struct keytablist *list, int id, char **keys, int klen);
@@ -27,31 +28,34 @@ int main(int argc, char **argv)
     if (!strcmp(cmd, "exit") || !strcmp(cmd, ""))
       break;
     struct cmd evaled = eval(cmd);
-    int range = getrange(evaled.selector);
+    int id = getid(evaled.selector);
     switch (evaled.type) {
       case GET:
-        if (range >= 0)
-          printkeys(list, range, evaled.params, evaled.plen);
-        else if (range == -1) {
+        if (id >= 0)
+          printkeys(list, id, evaled.params, evaled.plen);
+        else if (id == -1) {
           for (int i = 0; i < list[0].len; ++i)
             printkeys(list, i, evaled.params, evaled.plen);
-        }
+        } else
+          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
         break;
       case SET:
-        if (range >= 0)
-          setkeys(&list, range, evaled.params, evaled.plen);
-        else if (range == -1) {
+        if (id >= 0)
+          setkeys(&list, id, evaled.params, evaled.plen);
+        else if (id == -1) {
           for (int i = 0; i < list[0].len; ++i)
             setkeys(&list, i, evaled.params, evaled.plen);
-        }
+        } else
+          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
         break;
       case DEL:
-        if (range >= 0)
-          delkeys(list, range, evaled.params, evaled.plen);
-        else if (range == -1) {
+        if (id >= 0)
+          delkeys(list, id, evaled.params, evaled.plen);
+        else if (id == -1) {
           for (int i = 0; i < list[0].len; ++i)
             delkeys(list, i, evaled.params, evaled.plen);
-        }
+        } else
+          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
         break;
       case ERR:
         fprintf(stderr, "Unkown command: %s\n", cmd);
@@ -78,13 +82,14 @@ int main(int argc, char **argv)
   exit(0);
 }
 
-int getrange(char *selector) {
+int getid(char *selector) {
   if (selector == NULL)
-    return -3;
+    return -2;
   int id;
   if (!strcmp(selector, "*"))
     return -1;
-  else if ((id = atoi(selector)) >= 0)
+  else if (isdigit(selector[0]) &&
+      (id = atoi(selector)) >= 0)
     return id;
   else
     return -2;
