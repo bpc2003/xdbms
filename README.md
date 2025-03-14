@@ -2,9 +2,9 @@
 mdb is a simple embedded key-value database written in C.
 
 ## Table of Contents
-- [Installation](##Installation)
-- [Reference](##Reference)
-- [Removal](##Removal)
+- [Installation](#Installation)
+- [Reference](#Reference)
+- [Removal](#Removal)
 - [License](./LICENSE)
 
 ## Installation
