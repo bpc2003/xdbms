@@ -24,7 +24,7 @@ The basic layout of a command looks like this:\
 - `s` represents the selector.\
 If `s` is a number, it will execute the command on that specific object.\
 If `s` is an `*` it will execute the command on every object.
-- `/params/` represents any paramaters\
+- `/params/` represents any parameters\
 that the command may need to execute properly.\
 All parameters are separated by a `/`.
 

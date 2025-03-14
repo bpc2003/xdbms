@@ -7,9 +7,11 @@
 #include "cmd.h"
 
 int getid(char *selector);
-void printkeys(struct keytablist *list, int id, char **keys, int klen);
+void printkeys(struct keytablist **list, int id, char **keys, int klen);
 void setkeys(struct keytablist **list, int id, char **pairs, int plen);
-void delkeys(struct keytablist *list, int id, char **keys, int klen);
+void delkeys(struct keytablist **list, int id, char **keys, int klen);
+void exec(void (*tabop)(struct keytablist **, int, char **, int),
+          struct keytablist **list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
 {
@@ -31,31 +33,13 @@ int main(int argc, char **argv)
     int id = getid(evaled.selector);
     switch (evaled.type) {
       case GET:
-        if (id >= 0)
-          printkeys(list, id, evaled.params, evaled.plen);
-        else if (id == -1) {
-          for (int i = 0; i < list[0].len; ++i)
-            printkeys(list, i, evaled.params, evaled.plen);
-        } else
-          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
+        exec(printkeys, &list, id, evaled.params, evaled.plen);
         break;
       case SET:
-        if (id >= 0)
-          setkeys(&list, id, evaled.params, evaled.plen);
-        else if (id == -1) {
-          for (int i = 0; i < list[0].len; ++i)
-            setkeys(&list, i, evaled.params, evaled.plen);
-        } else
-          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
+        exec(setkeys, &list, id, evaled.params, evaled.plen);
         break;
       case DEL:
-        if (id >= 0)
-          delkeys(list, id, evaled.params, evaled.plen);
-        else if (id == -1) {
-          for (int i = 0; i < list[0].len; ++i)
-            delkeys(list, i, evaled.params, evaled.plen);
-        } else
-          fprintf(stderr, "Invalid selector: %s\n", evaled.selector);
+        exec(delkeys, &list, id, evaled.params, evaled.plen);
         break;
       case ERR:
         fprintf(stderr, "Unkown command: %s\n", cmd);
@@ -95,22 +79,22 @@ int getid(char *selector) {
     return -2;
 }
 
-void printkeys(struct keytablist *list, int id, char **keys, int klen)
+void printkeys(struct keytablist **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
-    int *indexes = getkeys(list, id);
+    int *indexes = getkeys(*list, id);
     printf("{ id: %d ", id);
     for (int i = 0; indexes[i]; ++i) {
-      printf("%s: ", list[id].tab[indexes[i]].key);
-      switch (list[id].tab[indexes[i]].flag) {
+      printf("%s: ", (*list)[id].tab[indexes[i]].key);
+      switch ((*list)[id].tab[indexes[i]].flag) {
         case 1:
-          printf("%.2lf ", list[id].tab[indexes[i]].v.num);
+          printf("%.2lf ", (*list)[id].tab[indexes[i]].v.num);
           break;
         case 2:
-          printf("%s ", list[id].tab[indexes[i]].v.b ? "true" : "false");
+          printf("%s ", (*list)[id].tab[indexes[i]].v.b ? "true" : "false");
           break;
         case 3:
-          printf("%s ", list[id].tab[indexes[i]].v.str);
+          printf("%s ", (*list)[id].tab[indexes[i]].v.str);
           break;
       }
     }
@@ -119,7 +103,7 @@ void printkeys(struct keytablist *list, int id, char **keys, int klen)
   } else {
     printf("{ id: %d ", id);
     for (int i = 0; i < klen; ++i) {
-      struct keytab tabidx = getkey(list, id, keys[i]);
+      struct keytab tabidx = getkey(*list, id, keys[i]);
       if (tabidx.flag == 0)
         continue;
       printf ("%s: ", keys[i]);
@@ -151,15 +135,27 @@ void setkeys(struct keytablist **list, int id, char **pairs, int plen)
   }
 }
 
-void delkeys(struct keytablist *list, int id, char **keys, int klen)
+void delkeys(struct keytablist **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
-    int *indexes = getkeys(list, id);
+    int *indexes = getkeys(*list, id);
     for (int i = 0; indexes[i]; ++i)
-      delkey(list, id, list[id].tab[indexes[i]].key);
+      delkey(*list, id, (*list)[id].tab[indexes[i]].key);
     free(indexes);
   } else {
     for (int i = 0; i < klen; ++i)
-      delkey(list, id, keys[i]);
+      delkey(*list, id, keys[i]);
   }
+}
+
+void exec(void (*tabop)(struct keytablist **, int, char **, int),
+          struct keytablist **list, int id, char **keys, int klen)
+{
+  if (id >= 0)
+    tabop(list, id, keys, klen);
+  else if (id == -1) {
+    for (int i = 0; i < (*list)[0].len; ++i)
+      tabop(list, i, keys, klen);
+  } else
+    fprintf(stderr, "Invalid id\n");
 }
