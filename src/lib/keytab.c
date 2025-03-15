@@ -8,7 +8,7 @@
 static int hash(char *key);
 
 // getkeys - gets every single key in a key table
-int *getkeys(struct keytablist *list, int id)
+int *getkeys(tablist_t *list, int id)
 {
   int len = 2;
   int *indexes = calloc(len, sizeof(int));
@@ -25,93 +25,82 @@ int *getkeys(struct keytablist *list, int id)
 
 // getkey - gets a single key from a keytable
 // if it can't find the key it will return an empty table index
-struct keytab getkey(struct keytablist *list, int id, char *key)
+tabidx_t getkey(tablist_t *list, int id, char *key)
 {
   int idx = hash(key);
   if (list[id].tab[idx].key == NULL)
-    return (struct keytab) { .key = NULL, .flag = 0, .v = { 0 } };
+    return (tabidx_t) { .key = NULL, .flag = 0, .value = { 0 } };
 
   while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
   if (idx >= TABLEN)
-    return (struct keytab) { .key = NULL, .flag = 0, .v = { 0 } };
+    return (tabidx_t) { .key = NULL, .flag = 0, .value = { 0 } };
   return list[id].tab[idx];
 }
 
 // setkey - adds the given pair to the given key table
 // if setkey fails it will return 1 otherwise 0
-int setkey(struct keytablist **list, int id, char *pair)
+int setkey(tablist_t **list, int id, char *pair)
 {
   if (id >= (*list)[0].len) {
-    *list = realloc(*list, (id + 1) * sizeof(struct keytablist));
+    *list = realloc(*list, (id + 1) * sizeof(tablist_t));
     for (int i = (*list)[0].len; i <= id; ++i) {
       for (int j = 0; j < TABLEN; ++j)
-        (*list)[i].tab[j] = (struct keytab) {NULL, 0, {0}};
+        (*list)[i].tab[j] = (tabidx_t) { NULL, 0, { 0 } };
     }
     (*list)[0].len = id + 1;
   }
   char *tok = strtok(pair, ":");
   char *key = calloc(strlen(tok) + 1, sizeof(char));
   strcpy(key, tok);
-
-  tok = strtok(NULL, ":");
-  if (tok == NULL) {
-    fprintf(stderr, "Invalid key-value pair\n");
+  if (!(tok = strtok(NULL, ":")))
     return 1;
-  }
-  union value v;
-  int flag;
-  if (isdigit(*tok)) {
-    flag = 1;
-    v.num = atof(tok);
-  } else if (!strcmp(tok, "true") || !strcmp(tok, "false")) {
-    flag = 2;
-    v.b = !strcmp(tok, "true");
-  } else {
-    flag = 3;
-    v.str = calloc(strlen(tok) + 1, sizeof(char));
-    strcpy(v.str, tok);
-  }
 
   int idx = hash(key);
   while ((*list)[id].tab[idx].key != NULL &&
     strcmp((*list)[id].tab[idx].key, key) &&
     idx < TABLEN) idx++;
-  if (idx >= TABLEN) {
-    fprintf(stderr, "No more room in table\n");
+  if (idx >= TABLEN)
     return 2;
-  }
   if (!(*list)[id].tab[idx].key)
     (*list)[id].tab[idx].key = key;
   else {
     free(key);
     if ((*list)[id].tab[idx].flag == 3)
-      free((*list)[id].tab[idx].v.str);
+      free((*list)[id].tab[idx].value.str);
   }
-  (*list)[id].tab[idx].v = v;
-  (*list)[id].tab[idx].flag = flag;
+  if (isdigit(*tok)) {
+    (*list)[id].tab[idx].flag = 1;
+    (*list)[id].tab[idx].value.num = atof(tok);
+  } else if (!strcmp(tok, "true") || !strcmp(tok, "false")) {
+    (*list)[id].tab[idx].flag = 2;
+    (*list)[id].tab[idx].value.boolean = !strcmp(tok, "true");
+  } else {
+    (*list)[id].tab[idx].flag = 3;
+    (*list)[id].tab[idx].value.str = calloc(strlen(tok) + 1, sizeof(char));
+    strcpy((*list)[id].tab[idx].value.str, tok);
+  }
   return 0;
 }
 
 // delkey - removes the given key from the given key table
-void delkey(struct keytablist *list, int id, char *key)
+int delkey(tablist_t *list, int id, char *key)
 {
   int idx = hash(key);
   if (list[id].tab[idx].key == NULL)
-    return;
+    return 1;
   while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
     idx++;
-  if (idx >= TABLEN) {
-    fprintf(stderr, "Invalid key: %s\n", key);
-    return;
-  }
+  if (idx >= TABLEN)
+    return 2;
   free(list[id].tab[idx].key);
   list[id].tab[idx].key = NULL;
   if (list[id].tab[idx].flag == 3) {
-    free(list[id].tab[idx].v.str);
-    list[id].tab[idx].v.str = NULL;
+    free(list[id].tab[idx].value.str);
+    list[id].tab[idx].value.str = NULL;
   }
   list[id].tab[idx].flag = 0;
+  return 0;
 }
 
 static int hash(char *key)

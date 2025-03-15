@@ -7,11 +7,12 @@
 #include "cmd.h"
 
 int getid(char *selector);
-void printkeys(struct keytablist **list, int id, char **keys, int klen);
-void setkeys(struct keytablist **list, int id, char **pairs, int plen);
-void delkeys(struct keytablist **list, int id, char **keys, int klen);
-void exec(void (*tabop)(struct keytablist **, int, char **, int),
-          struct keytablist **list, int id, char **keys, int klen);
+void printkeys(tablist_t **list, int id, char **keys, int klen);
+void printkey(tabidx_t idx);
+void setkeys(tablist_t **list, int id, char **pairs, int plen);
+void delkeys(tablist_t **list, int id, char **keys, int klen);
+void exec(void (*tabop)(tablist_t **, int, char **, int),
+          tablist_t **list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
 {
@@ -22,7 +23,7 @@ int main(int argc, char **argv)
   char *filename = NULL;
   if (argc == 2)
     filename = argv[1];
-  struct keytablist *list = readdb(filename);
+  tablist_t *list = readdb(filename);
   char *cmd = calloc(1024, sizeof(char));
 
   while (fgets(cmd, 1024, stdin) != NULL) {
@@ -79,51 +80,44 @@ int getid(char *selector) {
     return -2;
 }
 
-void printkeys(struct keytablist **list, int id, char **keys, int klen)
+void printkeys(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
     int *indexes = getkeys(*list, id);
     printf("{ id: %d ", id);
-    for (int i = 0; indexes[i]; ++i) {
-      printf("%s: ", (*list)[id].tab[indexes[i]].key);
-      switch ((*list)[id].tab[indexes[i]].flag) {
-        case 1:
-          printf("%.2lf ", (*list)[id].tab[indexes[i]].v.num);
-          break;
-        case 2:
-          printf("%s ", (*list)[id].tab[indexes[i]].v.b ? "true" : "false");
-          break;
-        case 3:
-          printf("%s ", (*list)[id].tab[indexes[i]].v.str);
-          break;
-      }
-    }
+    for (int i = 0; indexes[i]; ++i)
+      printkey((*list)[id].tab[indexes[i]]);
     free(indexes);
     printf("}\n");
   } else {
     printf("{ id: %d ", id);
     for (int i = 0; i < klen; ++i) {
-      struct keytab tabidx = getkey(*list, id, keys[i]);
-      if (tabidx.flag == 0)
+      tabidx_t idx = getkey(*list, id, keys[i]);
+      if (idx.flag == 0)
         continue;
-      printf ("%s: ", keys[i]);
-      switch (tabidx.flag) {
-        case 1:
-          printf("%.2lf ", tabidx.v.num);
-          break;
-        case 2:
-          printf("%s ", tabidx.v.b ? "true" : "false");
-          break;
-        case 3:
-          printf("%s ", tabidx.v.str);
-          break;
-      }
+      printkey(idx);
     }
     printf("}\n");
   }
 }
 
-void setkeys(struct keytablist **list, int id, char **pairs, int plen)
+void printkey(tabidx_t idx)
+{
+  printf("%s: ", idx.key);
+  switch (idx.flag) {
+    case 1:
+      printf("%.2lf ", idx.value.num);
+      break;
+    case 2:
+      printf("%s ", idx.value.boolean ? "true" : "false");
+      break;
+    case 3:
+      printf("%s ", idx.value.str);
+      break;
+  }
+}
+
+void setkeys(tablist_t **list, int id, char **pairs, int plen)
 {
   if (pairs == NULL)
     return;
@@ -135,7 +129,7 @@ void setkeys(struct keytablist **list, int id, char **pairs, int plen)
   }
 }
 
-void delkeys(struct keytablist **list, int id, char **keys, int klen)
+void delkeys(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
     int *indexes = getkeys(*list, id);
@@ -148,8 +142,8 @@ void delkeys(struct keytablist **list, int id, char **keys, int klen)
   }
 }
 
-void exec(void (*tabop)(struct keytablist **, int, char **, int),
-          struct keytablist **list, int id, char **keys, int klen)
+void exec(void (*tabop)(tablist_t **, int, char **, int),
+          tablist_t **list, int id, char **keys, int klen)
 {
   if (id >= 0)
     tabop(list, id, keys, klen);

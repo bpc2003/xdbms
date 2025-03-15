@@ -9,10 +9,10 @@ static char *getpair(int *c, FILE *fp);
 // readdb - reads the given file into a key table list
 // if fp returns NULL it will return the empty list
 // if readdb fails it will return NULL
-struct keytablist *readdb(char *filename)
+tablist_t *readdb(char *filename)
 {
   int len = 2;
-  struct keytablist *list = calloc(len, sizeof(struct keytablist));
+  tablist_t *list = calloc(len, sizeof(tablist_t));
   list[0].len = len;
   FILE *fp = fopen(filename, "rb");
   if (fp == NULL)
@@ -24,18 +24,14 @@ struct keytablist *readdb(char *filename)
     switch (c) {
       case 250:
         p = getpair(&c, fp);
-        if (p == NULL) {
-          fprintf(stderr, "missing pair closing byte!\n");
+        if (p == NULL)
           return NULL;
-        }
         setkey(&list, i, p);
         free(p);
         break;
       case 251:
-        if (open == 1) {
-          fprintf(stderr, "missing object closing byte!\n");
+        if (open == 1)
           return NULL;
-        }
         open = 1;
         break;
       case 254:
@@ -43,7 +39,6 @@ struct keytablist *readdb(char *filename)
         i++;
         break;
       default:
-        fprintf(stderr, "Unknown byte: %d\n", c);
         return NULL;
     }
   }
@@ -52,7 +47,7 @@ struct keytablist *readdb(char *filename)
 }
 
 // writedb - writes a keytablist to a given file
-void writedb(char *filename, struct keytablist *list)
+void writedb(char *filename, tablist_t *list)
 {
   FILE *fp = fopen(filename, "wb");
   for (int i = 0; i < list[0].len; ++i) {
@@ -62,13 +57,14 @@ void writedb(char *filename, struct keytablist *list)
       fprintf(fp, "\xfa%s:", list[i].tab[indexes[j]].key);
       switch (list[i].tab[indexes[j]].flag) {
         case 1:
-          fprintf(fp, "%.2lf\xfc", list[i].tab[indexes[j]].v.num);
+          fprintf(fp, "%.2lf\xfc", list[i].tab[indexes[j]].value.num);
           break;
         case 2:
-          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].v.b == 1 ? "true" : "false");
+          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].value.boolean ?
+                  "true" : "false");
           break;
         case 3:
-          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].v.str);
+          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].value.str);
           break;
       }
     }

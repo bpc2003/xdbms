@@ -3,31 +3,29 @@
 
 #define TABLEN 1024
 
-union value {
-  char *str;
-  double num;
-  unsigned int b : 1;
-};
-
-struct keytab {
+typedef struct {
   char *key;
   int flag;
-  union value v;
-};
+  union {
+    char *str;
+    double num;
+    unsigned int boolean : 1;
+  } value;
+} tabidx_t;
 
-struct keytablist {
+typedef struct {
   int len;
-  struct keytab tab[TABLEN];
-};
+  tabidx_t tab[TABLEN];
+} tablist_t;
 
 // Table operations
-int *getkeys(struct keytablist *list, int id);
-struct keytab getkey(struct keytablist *list, int id, char *key);
-int setkey(struct keytablist **list, int id, char *pair);
-void delkey(struct keytablist *list, int id, char *key);
+int *getkeys(tablist_t *list, int id);
+tabidx_t getkey(tablist_t *list, int id, char *key);
+int setkey(tablist_t **list, int id, char *pair);
+int delkey(tablist_t *list, int id, char *key);
 
 // file operations
-struct keytablist *readdb(char *filename);
-void writedb(char *filename, struct keytablist *list);
+tablist_t *readdb(char *filename);
+void writedb(char *filename, tablist_t *list);
 
 #endif
