@@ -17,7 +17,7 @@ There are four basic commands in mdb:
 - GET: gets a given key-value pair from a given object
 - SET: sets a given key-value pair in a given object
 - DEL: deletes a given key-value pair from a given object
-#### Syntax
+### Syntax
 The basic layout of a command looks like this:\
 ```cmd s/params/```
 - `cmd` represents the command you're trying to execute
@@ -33,13 +33,30 @@ Examples:
 - `SET 0/name:John` - sets the key `name` to the value `John` in object 0.
 - `DEL */name` - deletes every key `name` from every object.
 ### API Reference
-There are six functions in mdb.h
-- readdb: reads a database from a given file
-- writedb: writes a database to a given file
-- getkeys: gets every key-value pair from a given object
-- getkey: gets a single key-value pair from a given object
-- setkey: sets a given key-value pair in a given object
-- delkey: deletes a given key-value pair from a given object
+There are six functions and two types in mdb.h
+#### Types:
+- tabidx_t: represents a single key-value pair in an object.
+- tablist_t: represents a single object.
+#### Functions:
+- readdb: takes a filename and returns a tablist array\
+if the file doesn't exist it will return an empty tablist array\
+if readdb fails in any other way it will return NULL.
+- writedb: takes a filename and tablist array\
+writedb writes the given tablist array to a file.
+- getkeys: takes a tablist array and index\
+getkeys finds every single key-value pair in a given tablist\
+and returns an integer array with the indexes of each key-value pair.
+- getkey: takes a tablist array, index, and key\
+getkey finds a key-value pair from a given tablist\
+if it can't find the key-value pair it will return an empty
+tabidx.
+- setkey: takes a pointer to a tablist array, an index, and a key-value pair\
+setkey sets a given key-value pair in a given object, if a given key already exists\
+it will overwrite the value set in that key.\
+If setkey is successful it will return 0.
+- delkey: takes a tablist array, an index, and a key\
+delkey deletes the given key-value pair from the given object\
+if successful it will return 0.
 
 ## Removal
 In order to remove mdb run:\
