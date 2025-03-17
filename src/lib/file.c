@@ -24,14 +24,12 @@ tablist_t *readdb(char *filename)
     switch (c) {
       case 250:
         p = getpair(&c, fp);
-        if (p == NULL)
-          goto fail;
+        if (p == NULL) goto fail;
         setkey(&list, i, p);
         free(p);
         break;
       case 251:
-        if (open == 1)
-          goto fail;
+        if (open == 1) goto fail;
         open = 1;
         break;
       case 254:

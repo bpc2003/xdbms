@@ -52,8 +52,10 @@ int setkey(tablist_t **list, int id, char *pair)
     (*list)[0].len = id + 1;
   }
   char **kv = getkv(pair);
-  if (kv == NULL)
+  if (kv == NULL) {
+    free(pair);
     return 1;
+  }
 
   int idx = hash(kv[0]);
   while ((*list)[id].tab[idx].key != NULL &&
@@ -120,8 +122,10 @@ static char **getkv(char *pair)
   int i = 0;
   while (pair[i] != ':' && i < strlen(pair))
     i++;
-  if (i >= strlen(pair))
+  if (i >= strlen(pair)) {
+    free(kv);
     return NULL;
+  }
   kv[0] = calloc(i + 1, sizeof(char));
   strncpy(kv[0], pair, i);
   kv[1] = calloc(strlen(pair) - i, sizeof(char));
