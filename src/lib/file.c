@@ -25,13 +25,13 @@ tablist_t *readdb(char *filename)
       case 250:
         p = getpair(&c, fp);
         if (p == NULL)
-          return NULL;
+          goto fail;
         setkey(&list, i, p);
         free(p);
         break;
       case 251:
         if (open == 1)
-          return NULL;
+          goto fail;
         open = 1;
         break;
       case 254:
@@ -44,6 +44,17 @@ tablist_t *readdb(char *filename)
   }
   fclose(fp);
   return list;
+
+fail:
+  fclose(fp);
+  for (int i = 0; i < list[0].len; ++i) {
+    int *indexes = getkeys(list, i);
+    for (int j = 0; indexes[j]; ++j)
+      delkey(list, i, list[i].tab[indexes[j]].key);
+    free(indexes);
+  }
+  free(list);
+  return NULL;
 }
 
 // writedb - writes a keytablist to a given file
@@ -51,7 +62,7 @@ void writedb(char *filename, tablist_t *list)
 {
   FILE *fp = fopen(filename, "wb");
   for (int i = 0; i < list[0].len; ++i) {
-    fprintf(fp, "\xfb");
+    fputc(0xFB, fp);
     int *indexes = getkeys(list, i);
     for (int j = 0; indexes[j]; ++j) {
       fprintf(fp, "\xfa%s:", list[i].tab[indexes[j]].key);
@@ -69,7 +80,7 @@ void writedb(char *filename, tablist_t *list)
       }
     }
     free(indexes);
-    fprintf(fp, "\xfe");
+    fputc(0xFE, fp);
   }
   fclose(fp);
 }

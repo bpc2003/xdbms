@@ -24,6 +24,8 @@ int main(int argc, char **argv)
   if (argc == 2)
     filename = argv[1];
   tablist_t *list = readdb(filename);
+  if (list == NULL)
+    exit(1);
   char *cmd = calloc(1024, sizeof(char));
 
   while (fgets(cmd, 1024, stdin) != NULL) {
