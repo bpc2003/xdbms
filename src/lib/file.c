@@ -39,7 +39,7 @@ tablist_t *readdb(char *filename)
         i++;
         break;
       default:
-        return NULL;
+        goto fail;
     }
   }
   fclose(fp);
