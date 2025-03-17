@@ -14,8 +14,9 @@ tablist_t *readdb(char *filename)
   int len = 2;
   tablist_t *list = calloc(len, sizeof(tablist_t));
   list[0].len = len;
-  FILE *fp = fopen(filename, "rb");
-  if (fp == NULL)
+  FILE *fp;
+  if (filename == NULL ||
+    (fp = fopen(filename, "rb")) == NULL)
     return list;
 
   int c, i = 0, open = 0;
@@ -59,6 +60,8 @@ fail:
 void writedb(char *filename, tablist_t *list)
 {
   FILE *fp = fopen(filename, "wb");
+  if (fp == NULL)
+    return;
   for (int i = 0; i < list[0].len; ++i) {
     fputc(0xFB, fp);
     int *indexes = getkeys(list, i);

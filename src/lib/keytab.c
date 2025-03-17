@@ -12,6 +12,8 @@ static char **getkv(char *pair);
 int *getkeys(tablist_t *list, int id)
 {
   int len = 2;
+  if (id >= list[0].len)
+    return NULL;
   int *indexes = calloc(len, sizeof(int));
   for (int i = 0, j = 0; i < TABLEN; ++i) {
     if (j >= len) {
