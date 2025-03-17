@@ -68,10 +68,11 @@ int setkey(tablist_t **list, int id, char *pair)
     if ((*list)[id].tab[idx].flag == 3)
       free((*list)[id].tab[idx].value.str);
   }
-  if (isdigit(kv[1][0])) {
+  char *end;
+  double num = strtod(kv[1], &end);
+  if (*end == '\0') {
     (*list)[id].tab[idx].flag = 1;
-    // TODO: Implement parsenum function
-    (*list)[id].tab[idx].value.num = atof(kv[1]);
+    (*list)[id].tab[idx].value.num = num;
   } else if (!strcmp(kv[1], "true") || !strcmp(kv[1], "false")) {
     (*list)[id].tab[idx].flag = 2;
     (*list)[id].tab[idx].value.boolean = !strcmp(kv[1], "true");
