@@ -7,11 +7,11 @@
 #include "cmd.h"
 
 int getid(char *selector);
-void printkeys(tablist_t **list, int id, char **keys, int klen);
+int printkeys(tablist_t **list, int id, char **keys, int klen);
 void printkey(tabidx_t idx);
-void setkeys(tablist_t **list, int id, char **pairs, int plen);
-void delkeys(tablist_t **list, int id, char **keys, int klen);
-void exec(void (*tabop)(tablist_t **, int, char **, int),
+int setkeys(tablist_t **list, int id, char **pairs, int plen);
+int delkeys(tablist_t **list, int id, char **keys, int klen);
+int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
@@ -37,10 +37,11 @@ int main(int argc, char **argv)
         exec(printkeys, &list, id, evaled.params, evaled.plen);
         break;
       case SET:
-        exec(setkeys, &list, id, evaled.params, evaled.plen);
-        break;
       case DEL:
-        exec(delkeys, &list, id, evaled.params, evaled.plen);
+        id = exec(evaled.type == SET ? setkeys : delkeys,
+             &list, id, evaled.params, evaled.plen);
+        if (!id && filename)
+          writedb(filename, list);
         break;
       case ERR:
         fprintf(stderr, "Unkown command: %s\n", cmd);
@@ -55,8 +56,7 @@ int main(int argc, char **argv)
   }
   free(cmd);
 
-  if (filename != NULL)
-    writedb(filename, list);
+
   for (int i = 0; i < list[0].len; ++i) {
     int *indexes = getkeys(list, i);
     for (int j = 0; indexes[j]; ++j)
@@ -80,7 +80,7 @@ int getid(char *selector) {
     return -2;
 }
 
-void printkeys(tablist_t **list, int id, char **keys, int klen)
+int printkeys(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
     int *indexes = getkeys(*list, id);
@@ -99,6 +99,7 @@ void printkeys(tablist_t **list, int id, char **keys, int klen)
     }
     printf("}\n");
   }
+  return 0;
 }
 
 void printkey(tabidx_t idx)
@@ -117,39 +118,48 @@ void printkey(tabidx_t idx)
   }
 }
 
-void setkeys(tablist_t **list, int id, char **pairs, int plen)
+int setkeys(tablist_t **list, int id, char **pairs, int plen)
 {
   if (pairs == NULL)
-    return;
+    return 1;
   for (int i = 0; i < plen; ++i) {
     char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
     strcpy(tmp, pairs[i]);
-    setkey(list, id, tmp);
+    if (setkey(list, id, tmp))
+      return 1;
     free(tmp);
   }
+  return 0;
 }
 
-void delkeys(tablist_t **list, int id, char **keys, int klen)
+int delkeys(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
     int *indexes = getkeys(*list, id);
     for (int i = 0; indexes[i]; ++i)
-      delkey(*list, id, (*list)[id].tab[indexes[i]].key);
+      if (delkey(*list, id, (*list)[id].tab[indexes[i]].key))
+        return 1;
     free(indexes);
   } else {
     for (int i = 0; i < klen; ++i)
-      delkey(*list, id, keys[i]);
+      if (delkey(*list, id, keys[i]))
+        return 1;
   }
+  return 0;
 }
 
-void exec(void (*tabop)(tablist_t **, int, char **, int),
+int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen)
 {
   if (id >= 0)
-    tabop(list, id, keys, klen);
+    return tabop(list, id, keys, klen);
   else if (id == -1) {
     for (int i = 0; i < (*list)[0].len; ++i)
-      tabop(list, i, keys, klen);
-  } else
+      if (tabop(list, i, keys, klen))
+        return 1;
+    return 0;
+  } else {
     fprintf(stderr, "Invalid id\n");
+    return 1;
+  }
 }

@@ -27,6 +27,7 @@ install: lib
 	mv $(BUILD)/libmdb.so /usr/lib/libmdb.so
 	ldconfig
 	$(CC) src/*.c $(C_FLAGS) -o /usr/bin/mdb
+	rm -rf $(BUILD)
 
 uninstall:
 	rm /usr/bin/mdb

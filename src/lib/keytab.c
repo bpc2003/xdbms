@@ -6,6 +6,7 @@
 #include "mdb.h"
 
 static int hash(char *key);
+static char **getkv(char *pair);
 
 // getkeys - gets every single key in a key table
 int *getkeys(tablist_t *list, int id)
@@ -50,36 +51,37 @@ int setkey(tablist_t **list, int id, char *pair)
     }
     (*list)[0].len = id + 1;
   }
-  char *tok = strtok(pair, ":");
-  char *key = calloc(strlen(tok) + 1, sizeof(char));
-  strcpy(key, tok);
-  if (!(tok = strtok(NULL, ":")))
+  char **kv = getkv(pair);
+  if (kv == NULL)
     return 1;
 
-  int idx = hash(key);
+  int idx = hash(kv[0]);
   while ((*list)[id].tab[idx].key != NULL &&
-    strcmp((*list)[id].tab[idx].key, key) &&
+    strcmp((*list)[id].tab[idx].key, kv[0]) &&
     idx < TABLEN) idx++;
   if (idx >= TABLEN)
     return 2;
   if (!(*list)[id].tab[idx].key)
-    (*list)[id].tab[idx].key = key;
+    (*list)[id].tab[idx].key = kv[0];
   else {
-    free(key);
+    free(kv[0]);
     if ((*list)[id].tab[idx].flag == 3)
       free((*list)[id].tab[idx].value.str);
   }
-  if (isdigit(*tok)) {
+  if (isdigit(kv[1][0])) {
     (*list)[id].tab[idx].flag = 1;
-    (*list)[id].tab[idx].value.num = atof(tok);
-  } else if (!strcmp(tok, "true") || !strcmp(tok, "false")) {
+    // TODO: Implement parsenum function
+    (*list)[id].tab[idx].value.num = atof(kv[1]);
+  } else if (!strcmp(kv[1], "true") || !strcmp(kv[1], "false")) {
     (*list)[id].tab[idx].flag = 2;
-    (*list)[id].tab[idx].value.boolean = !strcmp(tok, "true");
+    (*list)[id].tab[idx].value.boolean = !strcmp(kv[1], "true");
   } else {
     (*list)[id].tab[idx].flag = 3;
-    (*list)[id].tab[idx].value.str = calloc(strlen(tok) + 1, sizeof(char));
-    strcpy((*list)[id].tab[idx].value.str, tok);
+    (*list)[id].tab[idx].value.str = calloc(strlen(kv[1]) + 1, sizeof(char));
+    strcpy((*list)[id].tab[idx].value.str, kv[1]);
   }
+  free(kv[1]);
+  free(kv);
   return 0;
 }
 
@@ -109,4 +111,19 @@ static int hash(char *key)
   for (int i = 0; i < strlen(key); ++i)
     h = ((h << 5) + h) + key[i];
   return h % TABLEN;
+}
+
+static char **getkv(char *pair)
+{
+  char **kv = calloc(2, sizeof(char *));
+  int i = 0;
+  while (pair[i] != ':' && i < strlen(pair))
+    i++;
+  if (i >= strlen(pair))
+    return NULL;
+  kv[0] = calloc(i + 1, sizeof(char));
+  strncpy(kv[0], pair, i);
+  kv[1] = calloc(strlen(pair) - i, sizeof(char));
+  strcpy(kv[1], pair + i + 1);
+  return kv;
 }
