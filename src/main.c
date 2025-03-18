@@ -9,8 +9,8 @@
 int getid(char *selector);
 int printkeys(tablist_t **list, int id, char **keys, int klen);
 void printkey(tabidx_t idx);
-int setkeys(tablist_t **list, int id, char **pairs, int plen);
-int delkeys(tablist_t **list, int id, char **keys, int klen);
+int setkeys_main(tablist_t **list, int id, char **pairs, int plen);
+int delkeys_main(tablist_t **list, int id, char **keys, int klen);
 int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen);
 
@@ -120,7 +120,7 @@ void printkey(tabidx_t idx)
   }
 }
 
-int setkeys(tablist_t **list, int id, char **pairs, int plen)
+int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
 {
   if (pairs == NULL)
     return 1;
@@ -134,7 +134,7 @@ int setkeys(tablist_t **list, int id, char **pairs, int plen)
   return 0;
 }
 
-int delkeys(tablist_t **list, int id, char **keys, int klen)
+int delkeys_main(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL) {
     int *indexes = getkeys(*list, id);

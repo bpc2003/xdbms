@@ -23,6 +23,8 @@ int *getkeys(tablist_t *list, int id);
 tabidx_t getkey(tablist_t *list, int id, char *key);
 int setkey(tablist_t **list, int id, char *pair);
 int delkey(tablist_t *list, int id, char *key);
+int setkeys(tablist_t **list, char *pair);
+int delkeys(tablist_t *list, char *key);
 
 // file operations
 tablist_t *readdb(char *filename);
