@@ -9,6 +9,7 @@
 int getid(char *selector);
 int printkeys(tablist_t **list, int id, char **keys, int klen);
 void printkey(tabidx_t idx);
+// TODO: rename these functions
 int setkeys_main(tablist_t **list, int id, char **pairs, int plen);
 int delkeys_main(tablist_t **list, int id, char **keys, int klen);
 int exec(int (*tabop)(tablist_t **, int, char **, int),
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
         break;
       case SET:
       case DEL:
-        id = exec(evaled.type == SET ? setkeys : delkeys,
+        id = exec(evaled.type == SET ? setkeys_main : delkeys_main,
              &list, id, evaled.params, evaled.plen);
         if (!id && filename)
           writedb(filename, list);
