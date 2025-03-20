@@ -128,8 +128,10 @@ int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
   for (int i = 0; i < plen; ++i) {
     char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
     strcpy(tmp, pairs[i]);
-    if (setkey(list, id, tmp))
+    if (setkey(list, id, tmp)) {
+      free(tmp);
       return 1;
+    }
     free(tmp);
   }
   return 0;

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -54,10 +53,8 @@ int setkey(tablist_t **list, int id, char *pair)
     (*list)[0].len = id + 1;
   }
   char **kv = getkv(pair);
-  if (kv == NULL) {
-    free(pair);
+  if (kv == NULL)
     return 1;
-  }
 
   int idx = hash(kv[0]);
   while ((*list)[id].tab[idx].key != NULL &&
