@@ -51,10 +51,27 @@ void test_delkeys(void)
   free(list);
 }
 
+void test_delkeys_fail(void)
+{
+  tablist_t *list = readdb("dbs/test.db");
+  if (!delkeys(list, "Row_4"))
+    fprintf(stderr, "test_delkeys_fail: failed\n");
+  for (int i = 0; i < list[0].len; ++i) {
+    int *indexes = getkeys(list, i);
+    for (int j = 0; indexes[j]; ++j)
+      delkey(list, i, list[i].tab[indexes[j]].key);
+    free(indexes);
+  }
+  free(list);
+}
+
 int main(void)
 {
   test_setkeys();
   test_setkeys_fail();
+
   test_delkeys();
+  test_delkeys_fail();
+
   exit(0);
 }

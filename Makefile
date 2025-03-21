@@ -14,8 +14,8 @@ lib: $(BUILD)
 
 test: dev_lib
 	$(CC) src/test.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/test.out
-	valgrind --leak-check=full ./$(BUILD)/test.out
-	valgrind --tool=helgrind ./$(BUILD)/test.out
+	valgrind --leak-check=full ./$(BUILD)/test.out 2> dbg
+	valgrind --tool=helgrind ./$(BUILD)/test.out 2>> dbg
 	rm -rf $(BUILD)
 
 dev: dev_lib
