@@ -15,6 +15,7 @@ int delkeys_main(tablist_t **list, int id, char **keys, int klen);
 int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen);
 
+// TODO: reimplement helpers to use batch operations
 int main(int argc, char **argv)
 {
   if (argc > 2) {

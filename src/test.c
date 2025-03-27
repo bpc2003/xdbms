@@ -6,7 +6,7 @@
 void test_setkeys(void)
 {
   tablist_t *list = readdb("dbs/test.db");
-  if (setkeys(&list, "name:john"))
+  if (setkeys(list, "name:john"))
     fprintf(stderr, "test_setkeys: failed\n");
   for (int i = 0; i < list[0].len; ++i) {
     printf("id: %d\n", i);
@@ -23,7 +23,7 @@ void test_setkeys(void)
 void test_setkeys_fail(void)
 {
   tablist_t *list = readdb("dbs/test.db");
-  if (!setkeys(&list, "namejohn"))
+  if (!setkeys(list, "namejohn"))
     fprintf(stderr, "test_setkeys_fail: failed\n");
   for (int i = 0; i < list[0].len; ++i) {
     int *indexes = getkeys(list, i);
@@ -48,6 +48,14 @@ void test_delkeys(void)
     }
     free(indexes);
   }
+  free(list);
+}
+
+void test_delkeys_all(void)
+{
+  tablist_t *list = readdb("dbs/test.db");
+  if (!delkeys(list, NULL))
+    fprintf(stderr, "test_delkeys_all: failed\n");
   free(list);
 }
 
