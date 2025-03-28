@@ -101,7 +101,7 @@ static int delkey_helper(void *thr_data)
   else {
     int *indexes = getkeys(delkey_copy, *id);
     for (int i = 0; indexes[i]; ++i)
-      delkey(delkey_copy, *id, delkey_copy[*id].tab[indexes[i]].key);
+      rc = delkey(delkey_copy, *id, delkey_copy[*id].tab[indexes[i]].key);
     free(indexes);
   }
   mtx_unlock(&delkey_mtx);

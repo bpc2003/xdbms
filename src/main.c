@@ -15,7 +15,6 @@ int delkeys_main(tablist_t **list, int id, char **keys, int klen);
 int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen);
 
-// TODO: reimplement helpers to use batch operations
 int main(int argc, char **argv)
 {
   if (argc > 2) {
@@ -86,22 +85,46 @@ int getid(char *selector) {
 
 int printkeys(tablist_t **list, int id, char **keys, int klen)
 {
-  if (keys == NULL) {
-    int *indexes = getkeys(*list, id);
-    printf("{ id: %d ", id);
-    for (int i = 0; indexes[i]; ++i)
-      printkey((*list)[id].tab[indexes[i]]);
-    free(indexes);
-    printf("}\n");
-  } else {
-    printf("{ id: %d ", id);
-    for (int i = 0; i < klen; ++i) {
-      tabidx_t idx = getkey(*list, id, keys[i]);
-      if (idx.flag == 0)
-        continue;
-      printkey(idx);
+  if (id > -1) {
+    if (keys == NULL) {
+      int *indexes = getkeys(*list, id);
+      printf("{ id: %d ", id);
+      for (int i = 0; indexes[i]; ++i)
+        printkey((*list)[id].tab[indexes[i]]);
+      free(indexes);
+      printf("}\n");
+    } else {
+      printf("{ id: %d ", id);
+      for (int i = 0; i < klen; ++i) {
+        tabidx_t idx = getkey(*list, id, keys[i]);
+        if (idx.flag == 0)
+          continue;
+        printkey(idx);
+      }
+      printf("}\n");
     }
-    printf("}\n");
+  } else {
+    if (keys == NULL) {
+      for (int i = 0; i < (*list)[0].len; ++i) {
+        int *indexes = getkeys(*list, i);
+        printf("{ id: %d ", i);
+        for (int j = 0; indexes[j]; ++j)
+          printkey((*list)[i].tab[indexes[j]]);
+        free(indexes);
+        printf("}\n");
+      }
+    } else {
+      for (int i = 0; i < (*list)[0].len; ++i) {
+        printf("{ id: %d\n", i);
+        for (int j = 0; j < klen; ++j) {
+          tabidx_t idx = getkey(*list, i, keys[i]);
+          if (idx.flag == 0)
+            continue;
+          printkey(idx);
+        }
+        printf("}\n");
+      }
+    }
   }
   return 0;
 }
@@ -126,30 +149,46 @@ int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
 {
   if (pairs == NULL)
     return 1;
-  for (int i = 0; i < plen; ++i) {
-    char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
-    strcpy(tmp, pairs[i]);
-    if (setkey(list, id, tmp)) {
+  if (id > -1) {
+    for (int i = 0; i < plen; ++i) {
+      char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
+      strcpy(tmp, pairs[i]);
+      if (setkey(list, id, tmp)) {
+        free(tmp);
+        return 1;
+      }
       free(tmp);
-      return 1;
     }
-    free(tmp);
+  } else {
+    for (int i = 0; i < plen; ++i)
+      if (setkeys(*list, pairs[i]))
+        return 1;
   }
   return 0;
 }
 
 int delkeys_main(tablist_t **list, int id, char **keys, int klen)
 {
-  if (keys == NULL) {
-    int *indexes = getkeys(*list, id);
-    for (int i = 0; indexes[i]; ++i)
-      if (delkey(*list, id, (*list)[id].tab[indexes[i]].key))
-        return 1;
-    free(indexes);
+  if (id > -1) {
+    if (keys == NULL) {
+      int *indexes = getkeys(*list, id);
+      for (int i = 0; indexes[i]; ++i)
+        if (delkey(*list, id, (*list)[id].tab[indexes[i]].key))
+          return 1;
+      free(indexes);
+    } else {
+      for (int i = 0; i < klen; ++i)
+       if (delkey(*list, id, keys[i]))
+          return 1;
+    }
   } else {
-    for (int i = 0; i < klen; ++i)
-      if (delkey(*list, id, keys[i]))
-        return 1;
+    if (keys == NULL)
+      delkeys(*list, NULL);
+    else {
+      for (int i = 0; i < klen; ++i)
+        if (delkeys(*list, keys[i]))
+          return 1;
+    }
   }
   return 0;
 }
@@ -157,14 +196,9 @@ int delkeys_main(tablist_t **list, int id, char **keys, int klen)
 int exec(int (*tabop)(tablist_t **, int, char **, int),
           tablist_t **list, int id, char **keys, int klen)
 {
-  if (id >= 0)
+  if (id >= -1)
     return tabop(list, id, keys, klen);
-  else if (id == -1) {
-    for (int i = 0; i < (*list)[0].len; ++i)
-      if (tabop(list, i, keys, klen))
-        return 1;
-    return 0;
-  } else {
+  else {
     fprintf(stderr, "Invalid id\n");
     return 1;
   }

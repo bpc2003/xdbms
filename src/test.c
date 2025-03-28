@@ -54,7 +54,7 @@ void test_delkeys(void)
 void test_delkeys_all(void)
 {
   tablist_t *list = readdb("dbs/test.db");
-  if (!delkeys(list, NULL))
+  if (delkeys(list, NULL))
     fprintf(stderr, "test_delkeys_all: failed\n");
   free(list);
 }
@@ -79,6 +79,7 @@ int main(void)
   test_setkeys_fail();
 
   test_delkeys();
+  test_delkeys_all();
   test_delkeys_fail();
 
   exit(0);

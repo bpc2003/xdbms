@@ -44,6 +44,8 @@ tabidx_t getkey(tablist_t *list, int id, char *key)
 // if setkey fails it will return 1 otherwise 0
 int setkey(tablist_t **list, int id, char *pair)
 {
+  if (pair == NULL)
+    return 1;
   if (id >= (*list)[0].len) {
     *list = realloc(*list, (id + 1) * sizeof(tablist_t));
     for (int i = (*list)[0].len; i <= id; ++i) {
@@ -54,7 +56,7 @@ int setkey(tablist_t **list, int id, char *pair)
   }
   char **kv = getkv(pair);
   if (kv == NULL)
-    return 1;
+    return 2;
 
   int idx = hash(kv[0]);
   while ((*list)[id].tab[idx].key != NULL &&
