@@ -147,23 +147,10 @@ void printkey(tabidx_t idx)
 
 int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
 {
-  if (pairs == NULL)
+  if (pairs == NULL || id < -1)
     return 1;
-  if (id > -1) {
-    for (int i = 0; i < plen; ++i) {
-      char *tmp = calloc(strlen(pairs[i]) + 1, sizeof(char));
-      strcpy(tmp, pairs[i]);
-      if (setkey(list, id, tmp)) {
-        free(tmp);
-        return 1;
-      }
-      free(tmp);
-    }
-  } else {
-    for (int i = 0; i < plen; ++i)
-      if (setkeys(*list, pairs[i]))
-        return 1;
-  }
+  for (int i = 0; i < plen; ++i)
+    setkeys(list, id, pairs[i]);
   return 0;
 }
 

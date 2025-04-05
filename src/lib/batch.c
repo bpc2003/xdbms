@@ -11,35 +11,45 @@ static int *clone(int n);
 static tablist_t *copytab(tablist_t *dst, tablist_t *src);
 static void dellist(tablist_t *list);
 
+extern int setkey(tablist_t **, int, char *);
+
 tablist_t *setkey_copy;
 char *setkey_str;
 
 mtx_t setkey_mtx;
-int setkeys(tablist_t *list, char *pair)
+int setkeys(tablist_t **list, int id, char *pair)
 {
   int rc = 0;
-  setkey_copy = calloc(list[0].len, sizeof(tablist_t));
-  copytab(setkey_copy, list);
+  setkey_copy = calloc((*list)[0].len, sizeof(tablist_t));
+  copytab(setkey_copy, *list);
   setkey_str = pair;
-
-  thrd_t *thrds = calloc(list[0].len, sizeof(thrd_t));
-  if (mtx_init(&setkey_mtx, mtx_plain) != thrd_success)
+  if (id < -1)
     return -1;
+  if (mtx_init(&setkey_mtx, mtx_plain) != thrd_success)
+    return -2;
 
-  for (int i = 0; i < setkey_copy[0].len; ++i)
-    thrd_create(&thrds[i], setkey_helper, clone(i));
-  for (int i = 0; i < setkey_copy[0].len; ++i) {
-    if (rc)
-      thrd_join(thrds[i], NULL);
-    else
-      thrd_join(thrds[i], &rc);
+  if (id == -1) {
+    thrd_t *thrds = calloc((*list)[0].len, sizeof(thrd_t));
+    for (int i = 0; i < setkey_copy[0].len; ++i)
+      thrd_create(&thrds[i], setkey_helper, clone(i));
+    for (int i = 0; i < setkey_copy[0].len; ++i) {
+      if (rc)
+        thrd_join(thrds[i], NULL);
+      else
+        thrd_join(thrds[i], &rc);
+    }
+    free(thrds);
   }
+  else
+    rc = setkey_helper(clone(id));
+
   if (!rc) {
-    dellist(list);
-    memcpy(list, setkey_copy, setkey_copy[0].len * sizeof(tablist_t));
-  } else
-    dellist(setkey_copy);
-  free(thrds);
+    if (setkey_copy[0].len > (*list)[0].len)
+      *list = realloc(*list, setkey_copy[0].len * sizeof(tablist_t));
+    dellist(*list);
+    copytab(*list, setkey_copy);
+  }
+  dellist(setkey_copy);
   free(setkey_copy);
   return rc;
 }
@@ -124,6 +134,7 @@ static tablist_t *copytab(tablist_t *dst, tablist_t *src)
   dst[0].len = src[0].len;
   for (int i = 0; i < src[0].len; ++i) {
     for (int j = 0; j < TABLEN; ++j) {
+      dst[i].tab[j] = (tabidx_t) { NULL, 0, { 0 } };
       if (src[i].tab[j].flag) {
         switch (src[i].tab[j].flag) {
           case 3:

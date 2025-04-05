@@ -26,7 +26,7 @@ tablist_t *readdb(char *filename)
       case 250:
         p = getpair(&c, fp);
         if (p == NULL) goto fail;
-        setkey(&list, i, p);
+        setkeys(&list, i, p);
         free(p);
         break;
       case 251:
