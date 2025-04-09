@@ -12,6 +12,7 @@ static tablist_t *copytab(tablist_t *dst, tablist_t *src);
 static void dellist(tablist_t *list);
 
 extern int setkey(tablist_t **, int, char *);
+extern int delkey(tablist_t *, int, char *);
 
 tablist_t *setkey_copy;
 char *setkey_str;
@@ -58,31 +59,36 @@ tablist_t *delkey_copy;
 char *delkey_str;
 
 mtx_t delkey_mtx;
-int delkeys(tablist_t *list, char *key)
+int delkeys(tablist_t *list, int id, char *key)
 {
   int rc = 0;
   delkey_copy = calloc(list[0].len, sizeof(tablist_t));
   copytab(delkey_copy, list);
   delkey_str = key;
 
-  thrd_t *thrds = calloc(list[0].len, sizeof(thrd_t));
-  if (mtx_init(&delkey_mtx, mtx_plain) != thrd_success)
+  if (id < -1)
     return -1;
+  if (mtx_init(&delkey_mtx, mtx_plain) != thrd_success)
+    return -2;
+  if (id == -1) {
+    thrd_t *thrds = calloc(list[0].len, sizeof(thrd_t));
+    for (int i = 0; i < delkey_copy[0].len; ++i)
+      thrd_create(&thrds[i], delkey_helper, clone(i));
+    for (int i = 0; i < delkey_copy[0].len; ++i) {
+      if (rc)
+        thrd_join(thrds[i], NULL);
+      else
+        thrd_join(thrds[i], &rc);
+    }
+    free(thrds);
+  } else
+    rc = delkey_helper(clone(id));
 
-  for (int i = 0; i < delkey_copy[0].len; ++i)
-    thrd_create(&thrds[i], delkey_helper, clone(i));
-  for (int i = 0; i < delkey_copy[0].len; ++i) {
-    if (rc)
-      thrd_join(thrds[i], NULL);
-    else
-      thrd_join(thrds[i], &rc);
-  }
   if (!rc) {
     dellist(list);
     memmove(list, delkey_copy, delkey_copy[0].len * sizeof(tablist_t));
   } else
     dellist(delkey_copy);
-  free(thrds);
   free(delkey_copy);
   return rc;
 }
@@ -102,7 +108,7 @@ static int setkey_helper(void *thr_data)
 
 static int delkey_helper(void *thr_data)
 {
-  int rc;
+  int rc = 0;
   int *id = (int *) thr_data;
 
   mtx_lock(&delkey_mtx);

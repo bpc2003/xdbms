@@ -20,13 +20,11 @@ typedef struct {
 
 // Table operations
 tabidx_t getkey(tablist_t *list, int id, char *key);
-// TODO: Make these private
-int delkey(tablist_t *list, int id, char *key);
 
 // Batch Operations
 int *getkeys(tablist_t *list, int id);  // TODO: Reimplement getkeys
 int setkeys(tablist_t **list, int id, char *pair);
-int delkeys(tablist_t *list, char *key);
+int delkeys(tablist_t *list, int id, char *key);
 
 // file operations
 tablist_t *readdb(char *filename);

@@ -46,12 +46,7 @@ tablist_t *readdb(char *filename)
 
 fail:
   fclose(fp);
-  for (int i = 0; i < list[0].len; ++i) {
-    int *indexes = getkeys(list, i);
-    for (int j = 0; indexes[j]; ++j)
-      delkey(list, i, list[i].tab[indexes[j]].key);
-    free(indexes);
-  }
+  delkeys(list, -1,  NULL);
   free(list);
   return NULL;
 }
