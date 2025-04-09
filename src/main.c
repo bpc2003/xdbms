@@ -59,13 +59,7 @@ int main(int argc, char **argv)
   }
   free(cmd);
 
-
-  for (int i = 0; i < list[0].len; ++i) {
-    int *indexes = getkeys(list, i);
-    for (int j = 0; indexes[j]; ++j)
-      delkey(list, i, list[i].tab[indexes[j]].key);
-    free(indexes);
-  }
+  delkeys(list, -1, NULL);
   free(list);
   exit(0);
 }
@@ -150,33 +144,18 @@ int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
   if (pairs == NULL || id < -1)
     return 1;
   for (int i = 0; i < plen; ++i)
-    setkeys(list, id, pairs[i]);
+    if(setkeys(list, id, pairs[i]))
+      return 2;
   return 0;
 }
 
 int delkeys_main(tablist_t **list, int id, char **keys, int klen)
 {
-  if (id > -1) {
-    if (keys == NULL) {
-      int *indexes = getkeys(*list, id);
-      for (int i = 0; indexes[i]; ++i)
-        if (delkey(*list, id, (*list)[id].tab[indexes[i]].key))
-          return 1;
-      free(indexes);
-    } else {
-      for (int i = 0; i < klen; ++i)
-       if (delkey(*list, id, keys[i]))
-          return 1;
-    }
-  } else {
-    if (keys == NULL)
-      delkeys(*list, NULL);
-    else {
-      for (int i = 0; i < klen; ++i)
-        if (delkeys(*list, keys[i]))
-          return 1;
-    }
-  }
+  if (keys == NULL || id < -1)
+    return 1;
+  for (int i = 0; i < klen; ++i)
+    if(delkeys(*list, id, keys[i]))
+      return 2;
   return 0;
 }
 
