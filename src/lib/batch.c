@@ -18,31 +18,33 @@ tablist_t *setkey_copy;
 char *setkey_str;
 
 mtx_t setkey_mtx;
-int setkeys(tablist_t **list, int id, char *pair)
+int setkeys(tablist_t **list, int id, char **pairs, int len)
 {
-  int rc = 0;
-  setkey_copy = calloc((*list)[0].len, sizeof(tablist_t));
-  copytab(setkey_copy, *list);
-  setkey_str = pair;
-  if (id < -1)
+  if (id < -1 || pairs == NULL || len <= 0)
     return -1;
   if (mtx_init(&setkey_mtx, mtx_plain) != thrd_success)
     return -2;
+  int rc = 0;
+  setkey_copy = calloc((*list)[0].len, sizeof(tablist_t));
+  copytab(setkey_copy, *list);
 
-  if (id == -1) {
-    thrd_t *thrds = calloc((*list)[0].len, sizeof(thrd_t));
-    for (int i = 0; i < setkey_copy[0].len; ++i)
-      thrd_create(&thrds[i], setkey_helper, clone(i));
-    for (int i = 0; i < setkey_copy[0].len; ++i) {
-      if (rc)
-        thrd_join(thrds[i], NULL);
-      else
-        thrd_join(thrds[i], &rc);
+  for (int i = 0; i < len; ++i) {
+    setkey_str = pairs[i];
+    if (id == -1) {
+      thrd_t *thrds = calloc((*list)[0].len, sizeof(thrd_t));
+      for (int i = 0; i < setkey_copy[0].len; ++i)
+        thrd_create(&thrds[i], setkey_helper, clone(i));
+      for (int i = 0; i < setkey_copy[0].len; ++i) {
+        if (rc)
+          thrd_join(thrds[i], NULL);
+        else
+          thrd_join(thrds[i], &rc);
+      }
+      free(thrds);
     }
-    free(thrds);
+    else
+     rc = setkey_helper(clone(id));
   }
-  else
-    rc = setkey_helper(clone(id));
 
   if (!rc) {
     if (setkey_copy[0].len > (*list)[0].len)
@@ -56,20 +58,22 @@ int setkeys(tablist_t **list, int id, char *pair)
 }
 
 tablist_t *delkey_copy;
-char *delkey_str;
+char **delkeys_keys;
+int keys_len;
 
 mtx_t delkey_mtx;
-int delkeys(tablist_t *list, int id, char *key)
+int delkeys(tablist_t *list, int id, char **keys, int len)
 {
-  int rc = 0;
-  delkey_copy = calloc(list[0].len, sizeof(tablist_t));
-  copytab(delkey_copy, list);
-  delkey_str = key;
-
-  if (id < -1)
+  if (id < -1 || len < 0)
     return -1;
   if (mtx_init(&delkey_mtx, mtx_plain) != thrd_success)
     return -2;
+  int rc = 0;
+  delkey_copy = calloc(list[0].len, sizeof(tablist_t));
+  copytab(delkey_copy, list);
+  delkeys_keys = keys;
+  keys_len = len;
+
   if (id == -1) {
     thrd_t *thrds = calloc(list[0].len, sizeof(thrd_t));
     for (int i = 0; i < delkey_copy[0].len; ++i)
@@ -112,8 +116,12 @@ static int delkey_helper(void *thr_data)
   int *id = (int *) thr_data;
 
   mtx_lock(&delkey_mtx);
-  if (delkey_str)
-    rc = delkey(delkey_copy, *id, delkey_str);
+  if (keys_len > 0)
+    for (int i = 0; i < keys_len; ++i) {
+      if (delkeys_keys[i] == NULL)
+        return -3;
+      rc = delkey(delkey_copy, *id, delkeys_keys[i]);
+    }
   else {
     int *indexes = getkeys(delkey_copy, *id);
     for (int i = 0; indexes[i]; ++i)

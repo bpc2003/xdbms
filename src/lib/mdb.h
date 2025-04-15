@@ -22,9 +22,10 @@ typedef struct {
 tabidx_t getkey(tablist_t *list, int id, char *key);
 
 // Batch Operations
+// TODO: make setkeys and delkeys take char ** and int
 int *getkeys(tablist_t *list, int id);  // TODO: Reimplement getkeys
-int setkeys(tablist_t **list, int id, char *pair);
-int delkeys(tablist_t *list, int id, char *key);
+int setkeys(tablist_t **list, int id, char **pairs, int len);
+int delkeys(tablist_t *list, int id, char **keys, int len);
 
 // file operations
 tablist_t *readdb(char *filename);

@@ -143,9 +143,8 @@ int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
 {
   if (pairs == NULL || id < -1)
     return 1;
-  for (int i = 0; i < plen; ++i)
-    if(setkeys(list, id, pairs[i]))
-      return 2;
+  if (setkeys(list, id, pairs, plen))
+    return 2;
   return 0;
 }
 
@@ -153,9 +152,8 @@ int delkeys_main(tablist_t **list, int id, char **keys, int klen)
 {
   if (keys == NULL || id < -1)
     return 1;
-  for (int i = 0; i < klen; ++i)
-    if(delkeys(*list, id, keys[i]))
-      return 2;
+  if (delkeys(*list, id, keys, klen))
+    return 2;
   return 0;
 }
 
