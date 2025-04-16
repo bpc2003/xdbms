@@ -8,19 +8,31 @@ static int hash(char *key);
 static char **getkv(char *pair);
 
 // getkeys - gets every single key in a key table
-int *getkeys(tablist_t *list, int id)
+tabidx_t *getkeys(tablist_t *list, int id, char **keys, int klen)
 {
-  int len = 2;
+  int len = 1;
   if (id >= list[0].len)
     return NULL;
-  int *indexes = calloc(len, sizeof(int));
-  for (int i = 0, j = 0; i < TABLEN; ++i) {
-    if (j >= len) {
-      indexes = realloc(indexes, ++len * sizeof(int));
-      indexes[len - 1] = 0;
+  tabidx_t *indexes = calloc(len, sizeof(tabidx_t));
+  if (klen == 0) {
+    for (int i = 0, j = 0; i < TABLEN; ++i) {
+      if (j >= len) {
+        indexes = realloc(indexes, ++len * sizeof(tabidx_t));
+        indexes[len - 1] = (tabidx_t) { NULL, 0, { 0 } };
+      }
+      if (list[id].tab[i].flag)
+        indexes[j++] = list[id].tab[i];
     }
-    if (list[id].tab[i].key)
-      indexes[j++] = i;
+  } else {
+    for (int i = 0, j = 0; i < klen; ++i) {
+      tabidx_t idx = getkey(list, id, keys[i]);
+      if (idx.flag == 0)
+        return NULL;
+      if (j >= len) {
+        indexes = realloc(indexes, ++len * sizeof(tabidx_t));
+      }
+      indexes[j++] = idx;
+    }
   }
   return indexes;
 }

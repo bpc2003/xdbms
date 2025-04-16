@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   }
   free(cmd);
 
-  delkeys(list, -1, NULL);
+  delkeys(list, -1, NULL, 0);
   free(list);
   exit(0);
 }
@@ -81,10 +81,10 @@ int printkeys(tablist_t **list, int id, char **keys, int klen)
 {
   if (id > -1) {
     if (keys == NULL) {
-      int *indexes = getkeys(*list, id);
+      tabidx_t *indexes = getkeys(*list, id, NULL, 0);
       printf("{ id: %d ", id);
-      for (int i = 0; indexes[i]; ++i)
-        printkey((*list)[id].tab[indexes[i]]);
+      for (int i = 0; indexes[i].flag; ++i)
+        printkey(indexes[i]);
       free(indexes);
       printf("}\n");
     } else {
@@ -100,10 +100,10 @@ int printkeys(tablist_t **list, int id, char **keys, int klen)
   } else {
     if (keys == NULL) {
       for (int i = 0; i < (*list)[0].len; ++i) {
-        int *indexes = getkeys(*list, i);
+        tabidx_t *indexes = getkeys(*list, i, NULL, 0);
         printf("{ id: %d ", i);
-        for (int j = 0; indexes[j]; ++j)
-          printkey((*list)[i].tab[indexes[j]]);
+        for (int j = 0; indexes[j].flag; ++j)
+          printkey(indexes[j]);
         free(indexes);
         printf("}\n");
       }

@@ -19,11 +19,11 @@ typedef struct {
 } tablist_t;
 
 // Table operations
+// TODO: Make this private
 tabidx_t getkey(tablist_t *list, int id, char *key);
 
 // Batch Operations
-// TODO: make setkeys and delkeys take char ** and int
-int *getkeys(tablist_t *list, int id);  // TODO: Reimplement getkeys
+tabidx_t *getkeys(tablist_t *list, int id, char **keys, int len);  // TODO: Reimplement getkeys
 int setkeys(tablist_t **list, int id, char **pairs, int len);
 int delkeys(tablist_t *list, int id, char **keys, int len);
 

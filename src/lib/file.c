@@ -59,19 +59,19 @@ void writedb(char *filename, tablist_t *list)
     return;
   for (int i = 0; i < list[0].len; ++i) {
     fputc(0xFB, fp);
-    int *indexes = getkeys(list, i);
-    for (int j = 0; indexes[j]; ++j) {
-      fprintf(fp, "\xfa%s:", list[i].tab[indexes[j]].key);
-      switch (list[i].tab[indexes[j]].flag) {
+    tabidx_t *indexes = getkeys(list, i, NULL, 0);
+    for (int j = 0; indexes[j].flag; ++j) {
+      fprintf(fp, "\xfa%s:", indexes[j].key);
+      switch (indexes[j].flag) {
         case 1:
-          fprintf(fp, "%.2lf\xfc", list[i].tab[indexes[j]].value.num);
+          fprintf(fp, "%.2lf\xfc", indexes[j].value.num);
           break;
         case 2:
-          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].value.boolean ?
+          fprintf(fp, "%s\xfc", indexes[j].value.boolean ?
                   "true" : "false");
           break;
         case 3:
-          fprintf(fp, "%s\xfc", list[i].tab[indexes[j]].value.str);
+          fprintf(fp, "%s\xfc", indexes[j].value.str);
           break;
       }
     }
