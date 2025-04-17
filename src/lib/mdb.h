@@ -23,7 +23,7 @@ typedef struct {
 tabidx_t getkey(tablist_t *list, int id, char *key);
 
 // Batch Operations
-tabidx_t *getkeys(tablist_t *list, int id, char **keys, int len);  // TODO: Reimplement getkeys
+tablist_t *getkeys(tablist_t *list, int id, char **keys, int len);  // TODO: Reimplement getkeys
 int setkeys(tablist_t **list, int id, char **pairs, int len);
 int delkeys(tablist_t *list, int id, char **keys, int len);
 

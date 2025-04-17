@@ -123,9 +123,9 @@ static int delkey_helper(void *thr_data)
       rc = delkey(delkey_copy, *id, delkeys_keys[i]);
     }
   else {
-    tabidx_t *indexes = getkeys(delkey_copy, *id, NULL, 0);
-    for (int i = 0; indexes[i].flag; ++i)
-      rc = delkey(delkey_copy, *id, indexes[i].key);
+    tablist_t *indexes = getkeys(delkey_copy, *id, NULL, 0);
+    for (int i = 0; indexes[0].tab[i].flag; ++i)
+      rc = delkey(delkey_copy, *id, indexes[0].tab[i].key);
     free(indexes);
   }
   mtx_unlock(&delkey_mtx);
@@ -172,9 +172,9 @@ static tablist_t *copytab(tablist_t *dst, tablist_t *src)
 static void dellist(tablist_t *list)
 {
   for (int i = 0; i < list[0].len; ++i) {
-    tabidx_t *indexes = getkeys(list, i, NULL, 0);
-    for (int j = 0; indexes[j].flag; ++j)
-      delkey(list, i, indexes[j].key);
+    tablist_t *indexes = getkeys(list, i, NULL, 0);
+    for (int j = 0; indexes[0].tab[j].flag; ++j)
+      delkey(list, i, indexes[0].tab[j].key);
     free(indexes);
   }
 }

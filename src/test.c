@@ -11,9 +11,9 @@ void test_setkeys(void)
     fprintf(stderr, "test_setkeys: failed\n");
   for (int i = 0; i < list[0].len; ++i) {
     printf("id: %d\n", i);
-    tabidx_t *indexes = getkeys(list, i, NULL, 0);
-    for (int j = 0; indexes[j].flag; ++j)
-      printf("%s\n", indexes[j].key);
+    tablist_t *indexes = getkeys(list, i, NULL, 0);
+    for (int j = 0; indexes[0].tab[j].flag; ++j)
+      printf("%s\n", indexes[0].tab[j].key);
     free(indexes);
   }
   delkeys(list, -1, NULL, 0);
@@ -68,9 +68,9 @@ void test_delkeys(void)
     fprintf(stderr, "test_delkeys: failed\n");
   for (int i = 0; i < list[0].len; ++i) {
     printf("id: %d\n", i);
-    tabidx_t *indexes = getkeys(list, i, NULL, 0);
-    for (int j = 0; indexes[j].flag; ++j)
-      printf("%s\n", indexes[j].key);
+    tablist_t *indexes = getkeys(list, i, NULL, 0);
+    for (int j = 0; indexes[0].tab[j].flag; ++j)
+      printf("%s\n", indexes[0].tab[j].key);
     free(indexes);
   }
   delkeys(list, -1, NULL, 0);
@@ -118,18 +118,32 @@ void test_getkeys_multi(void)
 {
   tablist_t *list = readdb("dbs/test.db");
   char *keys[] = { "Row_1", "Row_2" };
-  tabidx_t *ret = getkeys(list, 0, keys, 2);
+  tablist_t *ret = getkeys(list, 0, keys, 2);
   if (ret == NULL)
     fprintf(stderr, "test_getkeys_multi: failed\n");
-  for (int i = 0; ret[i].flag; ++i)
-    printf("%s\n", ret[i].key);
+  for (int i = 0; ret[0].tab[i].flag; ++i)
+    printf("%s\n", ret[0].tab[i].key);
   free(ret);
+  delkeys(list, -1, NULL, 0);
+  free(list);
+}
+
+void test_getkeys_multi_fail(void)
+{
+  tablist_t *list = readdb("dbs/test.db");
+  char *keys[] = { "Row_1", "Row_4" };
+  tablist_t *ret = getkeys(list, 0, keys, 2);
+  if (ret)
+    fprintf(stderr, "test_getkeys_multi_fail: failed\n");
   delkeys(list, -1, NULL, 0);
   free(list);
 }
 
 int main(void)
 {
+  test_getkeys_multi();
+  test_getkeys_multi_fail();
+
   test_setkeys();
   test_setkeys_fail();
   test_setkeys_single();
@@ -142,6 +156,5 @@ int main(void)
   test_delkeys_single();
   test_delkeys_multi();
 
-  test_getkeys_multi();
   exit(0);
 }
