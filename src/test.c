@@ -139,8 +139,20 @@ void test_getkeys_multi_fail(void)
   free(list);
 }
 
+void test_getkeys(void)
+{
+  tablist_t *list = readdb("dbs/test.db");
+  tablist_t *ret = getkeys(list, -1, NULL, 0);
+  if (!ret)
+    fprintf(stderr, "test_getkeys: failed\n");
+  free(ret);
+  delkeys(list, -1, NULL, 0);
+  free(list);
+}
+
 int main(void)
 {
+  test_getkeys();
   test_getkeys_multi();
   test_getkeys_multi_fail();
 

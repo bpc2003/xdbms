@@ -9,5 +9,5 @@ target/
 .ccls-cache
 
 # debug files
-dbg
+*dbg
 core

@@ -7,38 +7,6 @@
 static int hash(char *key);
 static char **getkv(char *pair);
 
-// getkeys - gets every single key in a key table
-tablist_t *getkeys(tablist_t *list, int id, char **keys, int klen)
-{
-  if (id >= list[0].len || id < -1)
-    return NULL;
-  int rc = 0;
-  int len = id == -1 ? list[0].len : 1;
-  tablist_t *indexes = calloc(len, sizeof(tablist_t));
-  indexes[0].len = len;
-  if (id >= 0) {
-    if (klen == 0) {
-      for (int i = 0, j = 0; i < TABLEN; ++i) {
-        if (list[id].tab[i].flag)
-          indexes[0].tab[j++] = list[id].tab[i];
-      }
-    } else {
-      for (int i = 0, j = 0; i < klen; ++i) {
-        tabidx_t idx = getkey(list, id, keys[i]);
-        if (idx.flag == 0)
-          rc = 1;
-        indexes[0].tab[j++] = idx;
-      }
-    }
-  }
-  if (!rc) {
-    return indexes;
-  } else {
-    free(indexes);
-    return NULL;
-  }
-}
-
 // getkey - gets a single key from a keytable
 // if it can't find the key it will return an empty table index
 tabidx_t getkey(tablist_t *list, int id, char *key)

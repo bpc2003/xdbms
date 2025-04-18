@@ -52,6 +52,7 @@ int setkeys(tablist_t **list, int id, char **pairs, int len)
     dellist(*list);
     copytab(*list, setkey_copy);
   }
+  mtx_destroy(&setkey_mtx);
   dellist(setkey_copy);
   free(setkey_copy);
   return rc;
@@ -93,6 +94,7 @@ int delkeys(tablist_t *list, int id, char **keys, int len)
     memmove(list, delkey_copy, delkey_copy[0].len * sizeof(tablist_t));
   } else
     dellist(delkey_copy);
+  mtx_destroy(&delkey_mtx);
   free(delkey_copy);
   return rc;
 }

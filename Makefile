@@ -1,7 +1,7 @@
 CC = gcc
 BUILD = target
 C_FLAGS = -Wall -lmdb -std=c11
-D_FLAGS = -L$(BUILD) -Wl,-rpath=$(BUILD)
+D_FLAGS = -L$(BUILD) -Wl,-rpath=$(BUILD) -O0
 L_FLAGS = -c -fPIC -Wall -Werror
 
 all: mdb
@@ -14,10 +14,9 @@ lib: $(BUILD)
 
 test: dev_lib
 	$(CC) src/test.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/test.out
-	valgrind --leak-check=full ./$(BUILD)/test.out 2> dbg
-	valgrind --tool=helgrind ./$(BUILD)/test.out 2>> dbg
+	valgrind --tool=memcheck -s --log-file="mem_dbg" ./$(BUILD)/test.out
+	valgrind --tool=drd -s --log-file="thrd_dbg" ./$(BUILD)/test.out
 	rm -rf $(BUILD)
-
 dev: dev_lib
 	$(CC) src/main.c src/cmd.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/devmdb.out
 dev_lib: $(BUILD)

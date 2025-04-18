@@ -79,47 +79,16 @@ int getid(char *selector) {
 
 int printkeys(tablist_t **list, int id, char **keys, int klen)
 {
-  if (id > -1) {
-    if (keys == NULL) {
-      tabidx_t *indexes = getkeys(*list, id, NULL, 0);
-      printf("{ id: %d ", id);
-      for (int i = 0; indexes[i].flag; ++i)
-        printkey(indexes[i]);
-      free(indexes);
-      printf("}\n");
-    } else {
-      printf("{ id: %d ", id);
-      for (int i = 0; i < klen; ++i) {
-        tabidx_t idx = getkey(*list, id, keys[i]);
-        if (idx.flag == 0)
-          continue;
-        printkey(idx);
-      }
-      printf("}\n");
-    }
-  } else {
-    if (keys == NULL) {
-      for (int i = 0; i < (*list)[0].len; ++i) {
-        tabidx_t *indexes = getkeys(*list, i, NULL, 0);
-        printf("{ id: %d ", i);
-        for (int j = 0; indexes[j].flag; ++j)
-          printkey(indexes[j]);
-        free(indexes);
-        printf("}\n");
-      }
-    } else {
-      for (int i = 0; i < (*list)[0].len; ++i) {
-        printf("{ id: %d\n", i);
-        for (int j = 0; j < klen; ++j) {
-          tabidx_t idx = getkey(*list, i, keys[i]);
-          if (idx.flag == 0)
-            continue;
-          printkey(idx);
-        }
-        printf("}\n");
-      }
-    }
+  tablist_t *indexes = getkeys(*list, id, keys, klen);
+  if (indexes == NULL)
+    return 1;
+  for (int i = 0; i < indexes[0].len; ++i) {
+    printf("{ id: %d ", i);
+    for (int j = 0; indexes[i].tab[j].flag; ++j)
+      printkey(indexes[i].tab[j]);
+    printf("}\n");
   }
+  free(indexes);
   return 0;
 }
 
