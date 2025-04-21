@@ -4,6 +4,8 @@
 
 #include "mdb.h"
 
+// TODO: move all these functions into seperate files
+
 static int hash(char *key);
 static char **getkv(char *pair);
 

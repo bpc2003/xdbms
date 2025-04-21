@@ -5,6 +5,8 @@
 
 #include "mdb.h"
 
+extern tabidx_t getkey(tablist_t *list, int id, char *key);
+
 static int getkeys_helper(void *data);
 
 struct params {
@@ -44,9 +46,9 @@ tablist_t *getkeys(tablist_t *list, int id, char **keys, int klen)
   }
 
   mtx_destroy(&mtx);
-  if (!rc) {
+  if (!rc)
     return indexes;
-  } else {
+  else {
     free(indexes);
     return NULL;
   }

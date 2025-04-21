@@ -18,17 +18,26 @@ typedef struct {
   tabidx_t tab[TABLEN];
 } tablist_t;
 
-// Table operations
-// TODO: Make this private
-tabidx_t getkey(tablist_t *list, int id, char *key);
+/* getkeys: gets the provided keys from the provided id,
+ * if the id is set to -1, it will get the provided key from every document,
+ * if keys is NULL, it will get every key. */
+tablist_t *getkeys(tablist_t *list, int id, char **keys, int len);
 
-// Batch Operations
-tablist_t *getkeys(tablist_t *list, int id, char **keys, int len);  // TODO: Reimplement getkeys
+/* setkeys: sets the provided key-value pairs in the provided object,
+ * if the id is -1, it will set the provided pairs in every object. */
 int setkeys(tablist_t **list, int id, char **pairs, int len);
+
+/* delkeys: deletes the provided keys from the provided id,
+ * if the id is -1, it will delete the provided key from every document,
+ * if keys is NULL it, will delete every key. */
 int delkeys(tablist_t *list, int id, char **keys, int len);
 
-// file operations
+/* readdb: reads the provided db file,
+ * if the filename is NULL, it will return an empty table list,
+ * if the file format is invalid, it will return NULL. */
 tablist_t *readdb(char *filename);
+
+/* writedb: writes a table list to a database file. */
 void writedb(char *filename, tablist_t *list);
 
 #endif

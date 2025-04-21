@@ -5,6 +5,8 @@
 
 #include "mdb.h"
 
+// TODO: move these functions into seperate files
+
 static int setkey_helper(void *thr_data);
 static int delkey_helper(void *thr_data);
 static int *clone(int n);
