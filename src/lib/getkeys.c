@@ -4,8 +4,9 @@
 #include <threads.h>
 
 #include "mdb.h"
+#include "utils.h"
 
-extern tabidx_t getkey(tablist_t *list, int id, char *key);
+static tabidx_t getkey(tablist_t *list, int id, char *key);
 
 static int getkeys_helper(void *data);
 
@@ -88,4 +89,17 @@ static struct params *pass(tablist_t *list, tablist_t *ret, char **keys, int len
   p->lid = lid;
   p->pid = pid;
   return p;
+}
+
+static tabidx_t getkey(tablist_t *list, int id, char *key)
+{
+  int idx = hash(key);
+  if (list[id].tab[idx].key == NULL)
+    return (tabidx_t) { .key = NULL, .flag = 0, .value = { 0 } };
+
+  while (strcmp(list[id].tab[idx].key, key) && idx < TABLEN)
+    idx++;
+  if (idx >= TABLEN)
+    return (tabidx_t) { .key = NULL, .flag = 0, .value = { 0 } };
+  return list[id].tab[idx];
 }
