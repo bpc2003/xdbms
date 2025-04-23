@@ -36,7 +36,7 @@ Examples:
 There are six functions and two types in mdb.h
 #### Types:
 - tabidx_t: represents a single key-value pair in an object.
-- tablist_t: represents a single object.
+- tablist_t: represents a single document.
 #### Functions:
 - readdb: takes a filename and returns a tablist array\
 if the file doesn't exist it will return an empty tablist array\
