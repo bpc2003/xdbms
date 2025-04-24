@@ -10,27 +10,33 @@ static int setkey_helper(void *thr_data);
 static int setkey(tablist_t **, int, char *);
 static char **getkv(char *pair);
 
-tablist_t *setkey_copy;
-char *setkey_str;
+struct params {
+  mtx_t *mtx;
+  tablist_t **copy;
+  char *pair;
+  int id;
+};
 
-mtx_t setkey_mtx;
+static struct params *pass(mtx_t *mtx, tablist_t **copy, char *pair, int id);
+
 int setkeys(tablist_t **list, int id, char **pairs, int len)
 {
+  mtx_t mtx;
   if (id < -1 || pairs == NULL || len <= 0)
     return -1;
-  if (mtx_init(&setkey_mtx, mtx_plain) != thrd_success)
+  if (mtx_init(&mtx, mtx_plain) != thrd_success)
     return -2;
   int rc = 0;
-  setkey_copy = calloc((*list)[0].len, sizeof(tablist_t));
-  copytab(setkey_copy, *list);
+  tablist_t *copy = calloc((*list)[0].len, sizeof(tablist_t));
+  copytab(copy, *list);
 
   for (int i = 0; i < len; ++i) {
-    setkey_str = pairs[i];
+    char *pair = pairs[i];
     if (id == -1) {
       thrd_t *thrds = calloc((*list)[0].len, sizeof(thrd_t));
-      for (int i = 0; i < setkey_copy[0].len; ++i)
-        thrd_create(&thrds[i], setkey_helper, clone(i));
-      for (int i = 0; i < setkey_copy[0].len; ++i) {
+      for (int i = 0; i < copy[0].len; ++i)
+        thrd_create(&thrds[i], setkey_helper, pass(&mtx, &copy, pair, i));
+      for (int i = 0; i < copy[0].len; ++i) {
         if (rc)
           thrd_join(thrds[i], NULL);
         else
@@ -39,31 +45,31 @@ int setkeys(tablist_t **list, int id, char **pairs, int len)
       free(thrds);
     }
     else
-     rc = setkey_helper(clone(id));
+     rc = setkey_helper(pass(&mtx, &copy, pair, id));
   }
 
   if (!rc) {
-    if (setkey_copy[0].len > (*list)[0].len)
-      *list = realloc(*list, setkey_copy[0].len * sizeof(tablist_t));
+    if (copy[0].len > (*list)[0].len)
+      *list = realloc(*list, copy[0].len * sizeof(tablist_t));
     dellist(*list);
-    copytab(*list, setkey_copy);
+    copytab(*list, copy);
   }
-  mtx_destroy(&setkey_mtx);
-  dellist(setkey_copy);
-  free(setkey_copy);
+  mtx_destroy(&mtx);
+  dellist(copy);
+  free(copy);
   return rc;
 }
 
 static int setkey_helper(void *thr_data)
 {
   int rc;
-  int *id = (int *) thr_data;
+  struct params *p = (struct params *) thr_data;
 
-  mtx_lock(&setkey_mtx);
-  rc = setkey(&setkey_copy, *id, setkey_str);
-  mtx_unlock(&setkey_mtx);
+  mtx_lock(p->mtx);
+  rc = setkey(p->copy, p->id, p->pair);
+  mtx_unlock(p->mtx);
 
-  free(id);
+  free(p);
   return rc;
 }
 
@@ -129,4 +135,14 @@ static char **getkv(char *pair)
   kv[1] = calloc(strlen(pair) - i, sizeof(char));
   strcpy(kv[1], pair + i + 1);
   return kv;
+}
+
+static struct params *pass(mtx_t *mtx, tablist_t **copy, char *pair, int id)
+{
+  struct params *p = calloc(1, sizeof(struct params));
+  p->mtx =  mtx;
+  p->copy = copy;
+  p->pair = pair;
+  p->id = id;
+  return p;
 }

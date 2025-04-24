@@ -1,8 +1,6 @@
 #ifndef MDB_H
 #define MDB_H
 
-// TODO: implement isolation in setkeys and getkeys.
-
 #define TABLEN 1024
 
 typedef struct {

@@ -23,13 +23,6 @@ int hash(char *key)
   return h % TABLEN;
 }
 
-int *clone(int n)
-{
-  int *c = calloc(1, sizeof(int));
-  *c = n;
-  return c;
-}
-
 tablist_t *copytab(tablist_t *dst, tablist_t *src)
 {
   if (dst == NULL)

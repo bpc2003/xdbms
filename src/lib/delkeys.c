@@ -22,7 +22,7 @@ struct params {
 int delkeys(tablist_t *list, int id, char **keys, int len)
 {
   mtx_t mtx;
-  if (id < -1 || len < 0)
+  if (id >= list[0].len || id < -1 || len < 0)
     return -1;
   if (mtx_init(&mtx, mtx_plain) != thrd_success)
     return -2;
