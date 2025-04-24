@@ -8,7 +8,7 @@ all: mdb
 mdb: lib
 	$(CC) src/main.c src/cmd.c $(D_FLAGS) -O2 $(C_FLAGS) -o $(BUILD)/mdb.out
 lib: $(BUILD)
-	$(CC) src/lib/*.c $(L_FLAGS)
+	$(CC) src/include/engine/*.c $(L_FLAGS)
 	$(CC) -shared -o $(BUILD)/libmdb.so *.o
 	rm *.o
 
@@ -20,7 +20,7 @@ test: dev_lib
 dev: dev_lib
 	$(CC) src/main.c src/cmd.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/devmdb.out
 dev_lib: $(BUILD)
-	$(CC) src/lib/*.c $(L_FLAGS) -g
+	$(CC) src/include/engine/*.c $(L_FLAGS) -g
 	$(CC) -shared -o $(BUILD)/libmdb.so *.o
 	rm *.o
 

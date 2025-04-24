@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "lib/mdb.h"
+#include "include/mdb.h"
 #include "cmd.h"
 
 int getid(char *selector);

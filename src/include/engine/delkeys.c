@@ -2,13 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mdb.h"
+#include "engine.h"
 #include "utils.h"
 
 static int delkey_helper(void *thr_data);
 static int delkey(tablist_t *, int, char *);
 static struct params *pass(mtx_t *mtx, tablist_t *list, char **keys, int len, int id);
-
 
 struct params {
   mtx_t *mtx;
@@ -27,14 +26,14 @@ int delkeys(tablist_t *list, int id, char **keys, int len)
   if (mtx_init(&mtx, mtx_plain) != thrd_success)
     return -2;
   int rc = 0;
-  tablist_t *delkey_copy = calloc(list[0].len, sizeof(tablist_t));
-  copytab(delkey_copy, list);
+  tablist_t *copy = calloc(list[0].len, sizeof(tablist_t));
+  copytab(copy, list);
 
   if (id == -1) {
     thrd_t *thrds = calloc(list[0].len, sizeof(thrd_t));
-    for (int i = 0; i < delkey_copy[0].len; ++i)
-      thrd_create(&thrds[i], delkey_helper, pass(&mtx, delkey_copy, keys, len, i));
-    for (int i = 0; i < delkey_copy[0].len; ++i) {
+    for (int i = 0; i < copy[0].len; ++i)
+      thrd_create(&thrds[i], delkey_helper, pass(&mtx, copy, keys, len, i));
+    for (int i = 0; i < copy[0].len; ++i) {
       if (rc)
         thrd_join(thrds[i], NULL);
       else
@@ -42,15 +41,15 @@ int delkeys(tablist_t *list, int id, char **keys, int len)
     }
     free(thrds);
   } else
-    rc = delkey_helper(pass(&mtx, delkey_copy, keys, len, id));
+    rc = delkey_helper(pass(&mtx, copy, keys, len, id));
 
   if (!rc) {
     dellist(list);
-    memmove(list, delkey_copy, delkey_copy[0].len * sizeof(tablist_t));
+    memmove(list, copy, copy[0].len * sizeof(tablist_t));
   } else
-    dellist(delkey_copy);
+    dellist(copy);
   mtx_destroy(&mtx);
-  free(delkey_copy);
+  free(copy);
   return rc;
 }
 

@@ -43,20 +43,17 @@ if the file doesn't exist it will return an empty tablist array\
 if readdb fails in any other way it will return NULL.
 - writedb: takes a filename and tablist array\
 writedb writes the given tablist array to a file.
-- getkeys: takes a tablist array and index\
-getkeys finds every single key-value pair in a given tablist\
-and returns an integer array with the indexes of each key-value pair.
-- getkey: takes a tablist array, index, and key\
-getkey finds a key-value pair from a given tablist\
-if it can't find the key-value pair it will return an empty
-tabidx.
-- setkey: takes a pointer to a tablist array, an index, and a key-value pair\
-setkey sets a given key-value pair in a given object, if a given key already exists\
-it will overwrite the value set in that key.\
-If setkey is successful it will return 0.
-- delkey: takes a tablist array, an index, and a key\
-delkey deletes the given key-value pair from the given object\
-if successful it will return 0.
+- getkeys: takes a tablist array, id, list of keys,\
+and the length of the list of keys.\
+If id is -1, it will get every provided key from every document.\
+If keys is NULL, it will get every key-value pair from a document.
+- setkeys: takes a tablist array, id, list of key-value pairs,\
+and the length of the list of pairs.\
+If id is -1, it will set the provided pairs in every document.
+- delkeys: takes a tablist array, id, list of keys,\
+and the length of the list of keys.\
+If id is -1, it will delete every provided key from every document.\
+If keys is NULL it will delete every key from a document.
 
 ## Removal
 In order to remove mdb run:\

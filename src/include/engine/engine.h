@@ -1,5 +1,5 @@
-#ifndef MDB_H
-#define MDB_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #define TABLEN 1024
 

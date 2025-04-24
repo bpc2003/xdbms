@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "lib/mdb.h"
+#include "include/mdb.h"
 
 void test_setkeys(void)
 {

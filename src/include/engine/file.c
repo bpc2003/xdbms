@@ -2,13 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mdb.h"
+#include "engine.h"
 
 static char *getpair(int *c, FILE *fp);
 
-// readdb - reads the given file into a key table list
-// if fp returns NULL it will return the empty list
-// if readdb fails it will return NULL
+// TODO: reimplement this to read file in FI format
 tablist_t *readdb(char *filename)
 {
   int len = 2;
@@ -51,7 +49,7 @@ fail:
   return NULL;
 }
 
-// writedb - writes a keytablist to a given file
+// TODO: rewrite this function to write data in FI format
 void writedb(char *filename, tablist_t *list)
 {
   FILE *fp = fopen(filename, "wb");

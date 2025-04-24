@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "mdb.h"
+#include "engine.h"
 
 // dellist: deletes the provided table
 void dellist(tablist_t *list);
