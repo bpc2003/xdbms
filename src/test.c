@@ -3,6 +3,29 @@
 
 #include "include/mdb.h"
 
+void test_writedb(void)
+{
+  tablist_t *list = readdb("dbs/new.db");
+  writedb("dbs/test.db", list);
+  delkeys(list, -1, NULL, 0);
+  free(list);
+}
+
+void test_readdb(void)
+{
+  tablist_t *list = readdb("dbs/new.db");
+  tablist_t *indices = getkeys(list, -1, NULL, 0);
+  for (int i = 0; i < indices[0].len; ++i) {
+    printf("id: %d\n", i);
+    for (int j = 0; indices[i].tab[j].flag; ++j)
+      printf("%s\n", indices[i].tab[j].key);
+  }
+  free(indices);
+  delkeys(list, -1, NULL, 0);
+  free(list);
+}
+
+
 void test_setkeys(void)
 {
   tablist_t *list = readdb("dbs/test.db");
@@ -178,6 +201,8 @@ void test_getkeys(void)
 
 int main(void)
 {
+  test_writedb();
+  test_readdb();
   test_getkeys();
   test_getkeys_multi();
   test_getkeys_multi_fail();
