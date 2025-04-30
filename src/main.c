@@ -7,13 +7,8 @@
 #include "cmd.h"
 
 int getid(char *selector);
-int printkeys(tablist_t **list, int id, char **keys, int klen);
+int printkeys(tablist_t *list, int id, char **keys, int klen);
 void printkey(tabidx_t idx);
-// TODO: rename these functions
-int setkeys_main(tablist_t **list, int id, char **pairs, int plen);
-int delkeys_main(tablist_t **list, int id, char **keys, int klen);
-int exec(int (*tabop)(tablist_t **, int, char **, int),
-          tablist_t **list, int id, char **keys, int klen);
 
 int main(int argc, char **argv)
 {
@@ -37,12 +32,15 @@ int main(int argc, char **argv)
     int id = getid(evaled.selector);
     switch (evaled.type) {
       case GET:
-        exec(printkeys, &list, id, evaled.params, evaled.plen);
+        printkeys(list, id, evaled.params, evaled.plen);
         break;
       case SET:
+        id = setkeys(&list, id, evaled.params, evaled.plen);
+        if (!id && filename)
+          writedb(filename, list);
+        break;
       case DEL:
-        id = exec(evaled.type == SET ? setkeys_main : delkeys_main,
-             &list, id, evaled.params, evaled.plen);
+        id = delkeys(list, id, evaled.params, evaled.plen);
         if (!id && filename)
           writedb(filename, list);
         break;
@@ -77,9 +75,9 @@ int getid(char *selector) {
     return -2;
 }
 
-int printkeys(tablist_t **list, int id, char **keys, int klen)
+int printkeys(tablist_t *list, int id, char **keys, int klen)
 {
-  tablist_t *indexes = getkeys(*list, id, keys, klen);
+  tablist_t *indexes = getkeys(list, id, keys, klen);
   if (indexes == NULL)
     return 1;
   for (int i = 0; i < indexes[0].len; ++i) {
@@ -105,34 +103,5 @@ void printkey(tabidx_t idx)
     case 3:
       printf("%s ", idx.value.str);
       break;
-  }
-}
-
-int setkeys_main(tablist_t **list, int id, char **pairs, int plen)
-{
-  if (pairs == NULL || id < -1)
-    return 1;
-  if (setkeys(list, id, pairs, plen))
-    return 2;
-  return 0;
-}
-
-int delkeys_main(tablist_t **list, int id, char **keys, int klen)
-{
-  if (keys == NULL || id < -1)
-    return 1;
-  if (delkeys(*list, id, keys, klen))
-    return 2;
-  return 0;
-}
-
-int exec(int (*tabop)(tablist_t **, int, char **, int),
-          tablist_t **list, int id, char **keys, int klen)
-{
-  if (id >= -1)
-    return tabop(list, id, keys, klen);
-  else {
-    fprintf(stderr, "Invalid id\n");
-    return 1;
   }
 }

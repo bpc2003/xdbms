@@ -5,124 +5,82 @@
 #include "engine.h"
 
 static int check(char **known, int len, char *str);
-static long getsz(FILE *fp);
-static char *makepair(char *key, char *value);
+static void freeknown(char ***known, int len);
 
-// TODO: reimplement this to read file in FI (Fast Infoset) format
-// TODO: make this smaller
+static long getsz(FILE *fp);
+static int checkmark(char *buf, int pos);
+static char *readidx(char *buf, int *i, char ***known, int *len, int *pos);
+
 tablist_t *readdb(char *filename)
 {
   FILE *fp;
-  int llen = 2, tlen = 2;
-  char **ktags = calloc(tlen, sizeof(char *));
-  tablist_t *list = calloc(llen, sizeof(tablist_t));
-  list[0].len = llen;
-
+  int len = 2;
+  tablist_t *list = calloc(len, sizeof(tablist_t));
+  list[0].len = len;
   if (filename == NULL || (fp = fopen(filename, "rb")) == NULL)
     return list;
-
   long sz = getsz(fp);
   char *buf = calloc(sz, sizeof(char));
   fread(buf, sizeof(char), sz, fp);
-  char *v, *k;
-  for (int i = 0, j = 0, id = 0; i < sz; ++i) {
-    if (buf[i] == '\n')
-      continue;
-    if (j >= tlen)
-      ktags = realloc(ktags, ++tlen * sizeof(char *));
-    if (buf[i] == '<' || buf[i] == ':') {
-      if (buf[i] == '<') {
-        int t;
-        for (t = i + 1; buf[t] != '>'; ++t) ;
-        ktags[j] = calloc(t - i, sizeof(char));
-        strncpy(ktags[j++], buf + i + 1, t - i - 1);
-        k = ktags[j - 1];
-        i += t - i;
-      } else {
-        int t;
-        for (t = i + 1; buf[t] != '\n'; ++t) ;
-        v = calloc(t - i, sizeof(char));
-        strncpy(v, buf + i + 1, t - i - 1);
-        i += t - i;
-        char *pair = makepair(k, v);
-        setkeys(&list, id, &pair, 1);
-        free(pair);
-        free(v);
-      }
-    } else {
-      int idx = 0;
-      memcpy(&idx, buf + i, sizeof(int));
-      i += sizeof(int) - 1;
-      if (idx == 1)
-        id++;
-      k = ktags[idx];
+  fclose(fp);
+
+  int tlen, vlen, t = 0, v = 0, l = -1;
+  char **ktags = calloc((tlen = 2), sizeof(char *));
+  char **kvalues = calloc((vlen = 2), sizeof (char *));
+  char *key, *value;
+  for (int i = 0; i < sz; ++i) {
+    if (buf[i] == ':') {
+      ++i;
+      value = readidx(buf, &i, &kvalues, &vlen, &v);
+      char *pair = calloc(strlen(key) + strlen(value) + 2, sizeof(char));
+      sprintf(pair, "%s:%s", key, value);
+      setkeys(&list, l, &pair, 1);
+      free(pair);
+      key = value = NULL;
+    }
+    else {
+      key = readidx(buf, &i, &ktags, &tlen, &t);
+      if (!strcmp(key, "document"))
+        ++l;
     }
   }
-
-  for (int i = 0; i < tlen - 1; ++i)
-    free(ktags[i]);
-  free(ktags);
+  freeknown(&ktags, t);
+  freeknown(&kvalues, v);
   free(buf);
-  fclose(fp);
   return list;
 }
 
-// TODO: Make this write to a file in the FI (Fast Infoset) format
-// TODO: Make this smaller
-void writedb(char *filename, tablist_t *list)
+static char *readidx(char *buf, int *i, char ***known, int *len, int *pos)
 {
-  FILE *fp = fopen(filename, "wb");
-  if (fp == NULL)
-    return;
-  int len = 2;
-  char **ktags = calloc(len, sizeof(char *));
-
-  fprintf(fp, "<documents>\n");
-  fprintf(fp, "<document>\n");
-  ktags[0] = "documents";
-  ktags[1] = "document";
-  tablist_t *indexes = getkeys(list, -1, NULL, 0);
-  for (int i = 0, j = 2; i < indexes[0].len; ++i) {
-    int n = 1;
-    if (i > 0)
-      fwrite(&n, sizeof(int), 1, fp);
-    for (int k = 0; indexes[i].tab[k].flag; ++k) {
-      if ((n = check(ktags, len, indexes[i].tab[k].key)) >= 0)
-        fwrite(&n, sizeof(int), 1, fp);
-      else {
-        fprintf(fp, "<%s>", indexes[i].tab[k].key);
-        if (j >= len)
-          ktags = realloc(ktags, ++len * sizeof(char *));
-        ktags[j] = calloc(strlen(indexes[i].tab[k].key) + 1, sizeof(char));
-        strcpy(ktags[j++], indexes[i].tab[k].key);
-      }
-      switch (indexes[i].tab[k].flag) {
-        case 1:
-          fprintf(fp, ":%g\n", indexes[i].tab[k].value.num);
-          break;
-        case 2:
-          fprintf(fp, ":%s\n", indexes[i].tab[k].value.boolean ? "true" : "false");
-          break;
-        case 3:
-          fprintf(fp, ":%s\n", indexes[i].tab[k].value.str);
-          break;
-      }
+  char *r = NULL;
+  if (checkmark(buf, *i)) {
+    if (*len >= *pos) {
+      *len *= 2;
+      *known = realloc(*known, *len * sizeof(char *));
     }
+    *i += 4;
+    int nlen;
+    memcpy(&nlen, buf + *i, sizeof(int));
+    *i += sizeof(int);
+    (*known)[*pos] = calloc(nlen + 1, sizeof(char));
+    strncpy((*known)[(*pos)++], buf + *i, nlen);
+    r = (*known)[(*pos) - 1];
+    *i += nlen - 1;
+  } else {
+    int idx;
+    memcpy(&idx, buf + *i, sizeof(int));
+    *i += sizeof(int) - 1;
+    if (idx > *pos)
+      return NULL;
+    r = (*known)[idx];
   }
-  for (int i = 2; i < len; ++i)
-    free(ktags[i]);
-  free(ktags);
-  free(indexes);
-  fclose(fp);
+  return r;
 }
 
-static int check(char **known, int len, char *str)
+static int checkmark(char *buf, int pos)
 {
-  for (int i = 0; i < len; ++i) {
-    if (!strcmp(str, known[i]))
-      return i;
-  }
-  return -1;
+  int marker = 0xffffffff;
+  return !memcmp(buf + pos, &marker, sizeof(int));
 }
 
 static long getsz(FILE *fp)
@@ -133,9 +91,86 @@ static long getsz(FILE *fp)
   return sz;
 }
 
-static char *makepair(char *key, char *value)
+static void newtag(char *tag, FILE *fp);
+static void writeidx(char ***known, int *len, int *pos, char *str, FILE *fp);
+
+void writedb(char *filename, tablist_t *list)
 {
-  char *pair = calloc(strlen(key) + strlen(value) + 2, sizeof(char));
-  sprintf(pair, "%s:%s", key, value);
-  return pair;
+  FILE *fp = fopen(filename, "wb");
+  if (fp == NULL)
+    return;
+  int tlen, vlen, t = 0, v = 0;
+  char **ktags = calloc((tlen = 2), sizeof(char *));
+  writeidx(&ktags, &tlen, &t, "documents", fp);
+  writeidx(&ktags, &tlen, &t, "document", fp);
+
+  char buf[64];
+  char **kvalues = calloc((vlen = 2), sizeof(char *));
+  tablist_t *indexes = getkeys(list, -1, NULL, 0);
+  for (int i = 0; i < indexes[0].len; ++i) {
+    if (i > 0)
+      writeidx(&ktags, &tlen, &t, "document", fp);
+    for (int j = 0; indexes[i].tab[j].flag; ++j) {
+      writeidx(&ktags, &tlen, &t, indexes[i].tab[j].key, fp);
+      fputc(':', fp);
+      switch (indexes[i].tab[j].flag) {
+        case 1:
+          snprintf(buf, 64, "%g", indexes[i].tab[j].value.num);
+          writeidx(&kvalues, &vlen, &v, buf, fp);
+          break;
+        case 2:
+          writeidx(&kvalues, &vlen, &v,
+                   indexes[i].tab[j].value.boolean ? "true" : "false", fp);
+          break;
+        case 3:
+          writeidx(&kvalues, &vlen, &v, indexes[i].tab[j].value.str, fp);
+          break;
+      }
+    }
+  }
+  freeknown(&ktags, t);
+  freeknown(&kvalues, v);
+  free(indexes);
+  fclose(fp);
+}
+
+static void newtag(char *tag, FILE *fp)
+{
+  int len = strlen(tag);
+  int marker = 0xffffffff;
+  fwrite(&marker, sizeof(int), 1, fp);
+  fwrite(&len, sizeof(int), 1, fp);
+  fwrite(tag, sizeof(char), len, fp);
+}
+
+static void writeidx(char ***known, int *len, int *pos, char *str, FILE *fp)
+{
+  int n;
+  if ((n = check(*known, *pos, str)) >= 0)
+    fwrite(&n, sizeof(int), 1, fp);
+  else {
+    if (*pos >= *len) {
+      *len *= 2;
+      *known = realloc(*known, *len * sizeof(char *));
+    }
+    (*known)[*pos] = calloc(strlen(str) + 1, sizeof(char));
+    strcpy((*known)[*pos], str);
+    newtag((*known)[(*pos)++], fp);
+  }
+}
+
+static void freeknown(char ***known, int pos)
+{
+  for (int i = 0; i < pos; ++i)
+    free((*known)[i]);
+  free(*known);
+}
+
+static int check(char **known, int len, char *str)
+{
+  for (int i = 0; i < len; ++i) {
+    if (!strcmp(str, known[i]))
+      return i;
+  }
+  return -1;
 }
