@@ -20,7 +20,7 @@ test: dev_lib
 dev: dev_lib
 	$(CC) src/main.c src/cmd.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/devmdb.out
 dev_lib: $(BUILD)
-	$(CC) src/include/engine/*.c $(L_FLAGS) -g
+	$(CC) src/include/engine/*.c src/include/xml/*.c $(L_FLAGS) -g
 	$(CC) -shared -o $(BUILD)/libmdb.so *.o
 	rm *.o
 

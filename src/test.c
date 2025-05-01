@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "include/mdb.h"
+#include "include/engine/engine.h"
+#include "include/xml/xml.h"
 
 void test_writedb(void)
 {
-  tablist_t *list = readdb("dbs/new.db");
+  tablist_t *list = readdb("dbs/test.db");
   writedb("dbs/test.db", list);
   delkeys(list, -1, NULL, 0);
   free(list);
@@ -13,7 +14,7 @@ void test_writedb(void)
 
 void test_readdb(void)
 {
-  tablist_t *list = readdb("dbs/new.db");
+  tablist_t *list = readdb("dbs/test.db");
   tablist_t *indices = getkeys(list, -1, NULL, 0);
   for (int i = 0; i < indices[0].len; ++i) {
     printf("id: %d\n", i);
@@ -199,25 +200,86 @@ void test_getkeys(void)
   free(list);
 }
 
+void test_encode(void)
+{
+  map_t *map = calloc(1, sizeof(map_t));
+  map->attrs = NULL;
+  map->n_attrs = 0;
+  map->tag = "documents";
+  map->size = sizeof(map_t);
+  map->n = 2;
+  map->payload = (map_t []) {
+    {
+      .attrs = (map_t []) {{
+        .attrs = NULL,
+        .n_attrs = 0,
+        .tag = "id",
+        .payload = "0",
+        .size = sizeof(char),
+        .n = 1
+      }},
+      .n_attrs = 1,
+      .tag = "document",
+      .payload = (map_t []) {
+        {
+          .attrs = NULL,
+          .n_attrs = 0,
+          .tag = "test",
+          .payload = "test",
+          .size = sizeof(char),
+          .n = 4
+        }
+      },
+      .size = sizeof(map_t),
+      .n = 1
+    },
+    {
+      .attrs = (map_t []){{
+        .attrs = NULL,
+        .n_attrs = 0,
+        .tag = "id",
+        .payload = "1",
+        .size = sizeof(char),
+        .n = 1
+      }},
+      .n_attrs = 1,
+      .tag = "document",
+      .payload = "test",
+      .size = sizeof(char),
+      .n = 4
+    }
+  };
+
+  char *xml = encode(map, 1);
+  if (xml == NULL) {
+    fprintf(stderr, "test_encode: failed\n");
+    return;
+  }
+  printf("%s\n", xml);
+  free(map);
+  free(xml);
+}
+
 int main(void)
 {
-  test_writedb();
-  test_readdb();
-  test_getkeys();
-  test_getkeys_multi();
-  test_getkeys_multi_fail();
-
-  test_setkeys();
-  test_setkeys_fail();
-  test_setkeys_single();
-  test_setkeys_multipairs();
-  test_setkeys_multi_fail();
-
-  test_delkeys();
-  test_delkeys_all();
-  test_delkeys_fail();
-  test_delkeys_single();
-  test_delkeys_multi();
+  // test_writedb();
+  // test_readdb();
+  // test_getkeys();
+  // test_getkeys_multi();
+  // test_getkeys_multi_fail();
+  //
+  // test_setkeys();
+  // test_setkeys_fail();
+  // test_setkeys_single();
+  // test_setkeys_multipairs();
+  // test_setkeys_multi_fail();
+  //
+  // test_delkeys();
+  // test_delkeys_all();
+  // test_delkeys_fail();
+  // test_delkeys_single();
+  // test_delkeys_multi();
+  test_encode();
 
   exit(0);
 }
