@@ -3,16 +3,21 @@
 
 #include <stdio.h>
 
-struct map {
+
+typedef struct {
+  char *id;
+  char *value;
+} attr_t;
+
+typedef struct {
   char *tag;
   void *payload;
   size_t size;
   size_t n;
-  struct map *attrs;
-  size_t n_attrs;
-};
+  attr_t *attrs;
+  int n_attrs;
+} map_t;
 
-typedef struct map map_t;
 
 /* decode: decodes the provided xml statement into a map_t */
 map_t *decode(char *xml_str, int *len);

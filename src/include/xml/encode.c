@@ -19,7 +19,7 @@ char *encode(map_t *map, int len)
       for (int j = 0; j < map[i].n_attrs; ++j) {
         check(&str, &slen, &used,
               snprintf(buf, 64, " %s='%s'",
-              map[i].attrs[j].tag, (char *)map[i].attrs[j].payload));
+              map[i].attrs[j].id, map[i].attrs[j].value));
         strcat(str, buf);
       }
     }

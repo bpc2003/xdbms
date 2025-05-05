@@ -210,14 +210,9 @@ void test_encode(void)
   map->n = 2;
   map->payload = (map_t []) {
     {
-      .attrs = (map_t []) {{
-        .attrs = NULL,
-        .n_attrs = 0,
-        .tag = "id",
-        .payload = "0",
-        .size = sizeof(char),
-        .n = 1
-      }},
+      .attrs = (attr_t []) {
+        { .id = "id", .value = "0" }
+      },
       .n_attrs = 1,
       .tag = "document",
       .payload = (map_t []) {
@@ -234,14 +229,9 @@ void test_encode(void)
       .n = 1
     },
     {
-      .attrs = (map_t []){{
-        .attrs = NULL,
-        .n_attrs = 0,
-        .tag = "id",
-        .payload = "1",
-        .size = sizeof(char),
-        .n = 1
-      }},
+      .attrs = (attr_t []) {
+        { .id = "id", .value = "1" }
+      },
       .n_attrs = 1,
       .tag = "document",
       .payload = "test",
@@ -258,6 +248,14 @@ void test_encode(void)
   printf("%s\n", xml);
   free(map);
   free(xml);
+}
+
+void test_decode(void)
+{
+  char *xml_string="<documents><document><key>value</key></document><document><key>value</key></document></documents>";
+  int len;
+  map_t *map = decode(xml_string, &len);
+  free(map);
 }
 
 int main(void)
@@ -280,6 +278,7 @@ int main(void)
   // test_delkeys_single();
   // test_delkeys_multi();
   test_encode();
+  test_decode();
 
   exit(0);
 }
