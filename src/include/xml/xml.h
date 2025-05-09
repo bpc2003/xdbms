@@ -20,7 +20,7 @@ typedef struct {
 
 
 /* decode: decodes the provided xml statement into a map_t */
-map_t *decode(char *xml, int *len);
+map_t *decode(char *xml, int *pos, int *len);
 
 /* encode: encodes the provided map_t into a xml statement */
 char *encode(map_t *map, int len);

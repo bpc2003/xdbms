@@ -6,7 +6,7 @@
 static char *gettag(char *xml, int *pos);
 static char *getvalue(char *xml, int *pos);
 
-map_t *decode(char *xml, int *len)
+map_t *decode(char *xml, int *pos, int *len)
 {
   printf("%s\n", xml);
   if (*len)
@@ -18,7 +18,7 @@ map_t *decode(char *xml, int *len)
 
   char *tag = NULL;
   int err = 0;
-  for (int i = 0; i < strlen(xml); ++i) {
+  for (int i = *pos; i < strlen(xml); ++i) {
     if (xml[i] == '<') {
       ++i;
       if (xml[i] == '/') {
@@ -26,6 +26,7 @@ map_t *decode(char *xml, int *len)
         char *tmp = gettag(xml, &i);
         if (!strcmp(tag, tmp)) {
           free(tmp);
+          *pos = i + 1;
           goto end;
         } else {
           err = 1;
@@ -37,21 +38,18 @@ map_t *decode(char *xml, int *len)
         tag = gettag(xml, &i);
     } else if (xml[i] == '>') {
       ++i;
-      // TODO: figure out recursive calls
       if (xml[i] == '<') {
-        map_t *ndec = decode(xml + i, &(decoded->n));
+        map_t *ndec = decode(xml, &i, &(decoded->n));
         free(ndec);
       } else {
-        decoded->payload = getvalue(xml, &i);
-        decoded->size = sizeof(char);
-        decoded->n = strlen(decoded->payload);
-        printf("%s\n", (char *) decoded->payload);
+        char *value = getvalue(xml, &i);
+        printf("%s\n", value);
+        free(value);
       }
     }
   }
   end:
     if (err) {
-      free(decoded->payload);
       free(decoded);
       decoded = NULL;
     }

@@ -262,9 +262,9 @@ void test_encode(void)
 void test_decode(void)
 {
   char *xml =
-    "<documents><document><key>value1</key></document><document><key>value2</key></document></documents>";
-  int len = 0;
-  map_t *map = decode(xml, &len);
+    "<set><key1>value1</key1><key2>value2</key2></set>";
+  int len = 0, start = 0;
+  map_t *map = decode(xml, &start, &len);
   free(map);
 }
 
