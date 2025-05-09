@@ -234,9 +234,18 @@ void test_encode(void)
       },
       .n_attrs = 1,
       .tag = "document",
-      .payload = "test",
-      .size = sizeof(char),
-      .n = 4
+      .payload = (map_t []) {
+        {
+          .attrs = NULL,
+          .n_attrs = 0,
+          .tag = "test",
+          .payload = "test",
+          .size = sizeof(char),
+          .n = 4
+        }
+      },
+      .size = sizeof(map_t),
+      .n = 1
     }
   };
 
@@ -252,9 +261,10 @@ void test_encode(void)
 
 void test_decode(void)
 {
-  char *xml_string="<documents><document><key>value</key></document><document><key>value</key></document></documents>";
-  int len;
-  map_t *map = decode(xml_string, &len);
+  char *xml =
+    "<documents><document><key>value1</key></document><document><key>value2</key></document></documents>";
+  int len = 0;
+  map_t *map = decode(xml, &len);
   free(map);
 }
 

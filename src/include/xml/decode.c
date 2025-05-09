@@ -4,46 +4,53 @@
 #include "xml.h"
 
 static char *gettag(char *xml, int *pos);
+static char *getvalue(char *xml, int *pos);
 
 map_t *decode(char *xml, int *len)
 {
+  if (*len)
+    ++(*len);
+  else
+    *len = 1;
   map_t *decoded = calloc(1, sizeof(map_t));
-  *len = 1;
-  
-  int closed = 0;
-  char *title = NULL, *tmp;
-  for (int i = 0, j = 0; i < strlen(xml); ++i) {
-    switch (xml[i]) {
-      case '<':
+  decoded->payload = NULL;
+
+  char *tag = NULL;
+  int err = 0;
+  for (int i = 0; i < strlen(xml); ++i) {
+    if (xml[i] == '<') {
+      ++i;
+      if (xml[i] == '/') {
         ++i;
-        if (xml[i] == '/') {
-          ++i;
-          if (!strcmp(title, (tmp = gettag(xml, &i))))
-            closed = 1;
-          else {
-            free(tmp);
-            return NULL;
-          }
+        char *tmp = gettag(xml, &i);
+        if (!strcmp(tag, tmp)) {
           free(tmp);
-        } else {
-          if (title != NULL)
-            free(title);
-          closed = 0;
-          title = gettag(xml, &i);
+          goto end;
         }
-        printf("%s\n", title);
-        break;
-      case '>':
-        // TODO: make this recursive
-        if (xml[i + 1] == '<')
-          printf("nested tag\n");
         else
-          ;
-        break;
+          free(tmp);
+      }
+      else if (!tag)
+        tag = gettag(xml, &i);
+    } else if (xml[i] == '>') {
+      ++i;
+      // TODO: figure out recursive calls
+      if (xml[i] == '<')
+        ;
+      else {
+        char *value = getvalue(xml, &i);
+        printf("%s\n", value);
+        free(value);
+      }
     }
   }
-  free(title);
-  return decoded;
+  end:
+    if (err) {
+      free(decoded);
+      decoded = NULL;
+    }
+    free(tag);
+    return decoded;
 }
 
 static char *gettag(char *xml, int *pos)
@@ -52,6 +59,16 @@ static char *gettag(char *xml, int *pos)
   for (i = *pos, len = 0; xml[i] != '>'; ++i, ++len) ;
   char *title = calloc(len + 1, sizeof(char));
   strncpy(title, xml + *pos, len);
-  *pos += i - 2;
+  *pos += len - 1;
   return title;
+}
+
+static char *getvalue(char *xml, int *pos)
+{
+  int len, i;
+  for (i = *pos, len = 0; xml[i] != '<'; ++i, ++len) ;
+  char *value = calloc(len + 1, sizeof(char));
+  strncpy(value, xml + *pos, len);
+  *pos += len - 1;
+  return value;
 }

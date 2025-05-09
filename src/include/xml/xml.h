@@ -13,14 +13,14 @@ typedef struct {
   char *tag;
   void *payload;
   size_t size;
-  size_t n;
+  int n;
   attr_t *attrs;
   int n_attrs;
 } map_t;
 
 
 /* decode: decodes the provided xml statement into a map_t */
-map_t *decode(char *xml_str, int *len);
+map_t *decode(char *xml, int *len);
 
 /* encode: encodes the provided map_t into a xml statement */
 char *encode(map_t *map, int len);
