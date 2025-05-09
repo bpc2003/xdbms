@@ -8,6 +8,7 @@ static char *getvalue(char *xml, int *pos);
 
 map_t *decode(char *xml, int *len)
 {
+  printf("%s\n", xml);
   if (*len)
     ++(*len);
   else
@@ -26,26 +27,31 @@ map_t *decode(char *xml, int *len)
         if (!strcmp(tag, tmp)) {
           free(tmp);
           goto end;
-        }
-        else
+        } else {
+          err = 1;
           free(tmp);
+          goto end;
+        }
       }
       else if (!tag)
         tag = gettag(xml, &i);
     } else if (xml[i] == '>') {
       ++i;
       // TODO: figure out recursive calls
-      if (xml[i] == '<')
-        ;
-      else {
-        char *value = getvalue(xml, &i);
-        printf("%s\n", value);
-        free(value);
+      if (xml[i] == '<') {
+        map_t *ndec = decode(xml + i, &(decoded->n));
+        free(ndec);
+      } else {
+        decoded->payload = getvalue(xml, &i);
+        decoded->size = sizeof(char);
+        decoded->n = strlen(decoded->payload);
+        printf("%s\n", (char *) decoded->payload);
       }
     }
   }
   end:
     if (err) {
+      free(decoded->payload);
       free(decoded);
       decoded = NULL;
     }
