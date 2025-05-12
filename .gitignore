@@ -1,6 +1,6 @@
 # db files
-*.db
-*.db~
+*.xdb
+*.xdb~
 
 # build files
 target/

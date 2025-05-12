@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "include/engine/engine.h"
 #include "include/xml/xml.h"
@@ -265,6 +266,16 @@ void test_decode(void)
     "<set><key1>value1</key1><key2>value2</key2></set>";
   int len = 0, start = 0;
   map_t *map = decode(xml, &start, &len);
+  printf("%s\n", (xml = encode(map, 1)));
+  free(xml);
+  // TODO: create a freemap function
+  free(map->tag);
+  map_t *pl = (map_t *) map->payload;
+  free(pl[0].tag);
+  free(pl[1].tag);
+  free(pl[0].payload);
+  free(pl[1].payload);
+  free(map->payload);
   free(map);
 }
 

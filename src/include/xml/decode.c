@@ -6,46 +6,43 @@
 static char *gettag(char *xml, int *pos);
 static char *getvalue(char *xml, int *pos);
 
+// TODO: make this smaller
 map_t *decode(char *xml, int *pos, int *len)
 {
-  printf("%s\n", xml);
   if (*len)
     ++(*len);
   else
     *len = 1;
   map_t *decoded = calloc(1, sizeof(map_t));
-  decoded->payload = NULL;
 
-  char *tag = NULL;
-  int err = 0;
+  int err = 0, closed = 1;
   for (int i = *pos; i < strlen(xml); ++i) {
-    if (xml[i] == '<') {
+    if (!strncmp(xml + i, "</", 2)) {
+      i += 2;
+      char *tmp = gettag(xml, &i);
+      if (!strcmp(decoded->tag, tmp))
+        *pos = i;
+      else
+        err = 1;
+      free(tmp);
+      goto end;
+    } else if (xml[i] == '<' && closed) {
       ++i;
-      if (xml[i] == '/') {
-        ++i;
-        char *tmp = gettag(xml, &i);
-        if (!strcmp(tag, tmp)) {
-          free(tmp);
-          *pos = i + 1;
-          goto end;
-        } else {
-          err = 1;
-          free(tmp);
-          goto end;
-        }
-      }
-      else if (!tag)
-        tag = gettag(xml, &i);
-    } else if (xml[i] == '>') {
-      ++i;
-      if (xml[i] == '<') {
-        map_t *ndec = decode(xml, &i, &(decoded->n));
-        free(ndec);
-      } else {
-        char *value = getvalue(xml, &i);
-        printf("%s\n", value);
-        free(value);
-      }
+      decoded->tag = gettag(xml, &i);
+      closed = 0;
+    } else if (xml[i] == '<' && !closed) {
+      map_t *ndec = decode(xml, &i, &(decoded->n));
+      decoded->size = sizeof(map_t);
+      if (decoded->n > 1)
+        decoded->payload = realloc(decoded->payload, decoded->n * sizeof(map_t));
+      else
+        decoded->payload = calloc(1, sizeof(map_t));
+      ((map_t *) decoded->payload)[decoded->n - 1] = *ndec;
+      free(ndec);
+    } else {
+      decoded->payload = getvalue(xml, &i);
+      decoded->size = sizeof(char);
+      decoded->n = strlen(decoded->payload);
     }
   }
   end:
@@ -53,7 +50,6 @@ map_t *decode(char *xml, int *pos, int *len)
       free(decoded);
       decoded = NULL;
     }
-    free(tag);
     return decoded;
 }
 
@@ -63,7 +59,7 @@ static char *gettag(char *xml, int *pos)
   for (i = *pos, len = 0; xml[i] != '>'; ++i, ++len) ;
   char *title = calloc(len + 1, sizeof(char));
   strncpy(title, xml + *pos, len);
-  *pos += len - 1;
+  *pos += len;
   return title;
 }
 

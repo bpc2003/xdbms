@@ -1,4 +1,4 @@
-CC = gcc
+CC = cc
 BUILD = target
 C_FLAGS = -Wall -lmdb -std=c11
 D_FLAGS = -L$(BUILD) -Wl,-rpath=$(BUILD) -O0
