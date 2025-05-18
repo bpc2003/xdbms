@@ -25,5 +25,7 @@ map_t *decode(char *xml, int *pos, int *len);
 /* encode: encodes the provided map_t into a xml statement */
 char *encode(map_t *map, int len);
 
+/* freemap: frees a map and its children */
+void freemap(map_t *map);
 
 #endif
