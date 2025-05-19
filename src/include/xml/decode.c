@@ -3,38 +3,28 @@
 
 #include "xml.h"
 
-static char *gettag(char *xml, int *pos);
-static char *getvalue(char *xml, int *pos);
-static attr_t *getattrs(char *parsed, char **tag, int *n_attrs);
+static char *get_tag(char *xml, int *pos);
+static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs);
 
-// TODO: make this smaller
-// TODO: add attribute parsing
+static int check_closing_tag(char *xml, int *pos, char *tag, int *err);
+static void set_tag(char *xml, map_t **map, int *closed, int *pos);
+static void set_value(char *xml, int *pos, map_t **map);
+
 map_t *decode(char *xml, int *pos, int *len)
 {
-	if (*len)
-		++(*len);
-	else
-		*len = 1;
-	map_t *decoded = calloc(1, sizeof(map_t));
+	if (*len) ++(*len);
+	else *len = 1;
 
+	map_t *decoded = calloc(1, sizeof(map_t));
 	int err = 0, closed = 1;
 	for (int i = *pos; i < strlen(xml); ++i) {
-		if (!strncmp(xml + i, "</", 2)) {
-			i += 2;
-			char *tmp = gettag(xml, &i);
-			if (!strcmp(decoded->tag, tmp))
+		if (check_closing_tag(xml, &i, decoded->tag, &err)) {
+			if (!err)
 				*pos = i;
-			else
-				err = 1;
-			free(tmp);
-			goto end;
-		} else if (xml[i] == '<' && closed) {
-			++i;
-			decoded->attrs =
-				getattrs(gettag(xml, &i),
-			 &(decoded->tag), &(decoded->n_attrs));
-			closed = 0;
-		} else if (xml[i] == '<' && !closed) {
+			break;
+		} else if (xml[i] == '<' && closed)
+			set_tag(xml, &decoded, &closed, &i);
+		else if (xml[i] == '<' && !closed) {
 			map_t *ndec = decode(xml, &i, &(decoded->n));
 			decoded->size = sizeof(map_t);
 			if (decoded->n > 1)
@@ -43,21 +33,17 @@ map_t *decode(char *xml, int *pos, int *len)
 				decoded->payload = calloc(1, sizeof(map_t));
 			((map_t *) decoded->payload)[decoded->n - 1] = *ndec;
 			free(ndec);
-		} else {
-			decoded->payload = getvalue(xml, &i);
-			decoded->size = sizeof(char);
-			decoded->n = strlen(decoded->payload);
-		}
+		} else
+			set_value(xml, &i, &decoded);
 	}
-	end:
-		if (err) {
-			free(decoded);
-			decoded = NULL;
-		}
-		return decoded;
+	if (err) {
+		free(decoded);
+		decoded = NULL;
+	}
+	return decoded;
 }
 
-static char *gettag(char *xml, int *pos)
+static char *get_tag(char *xml, int *pos)
 {
 	int len, i;
 	for (i = *pos, len = 0; xml[i] != '>' && i < strlen(xml); ++i, ++len)
@@ -70,20 +56,22 @@ static char *gettag(char *xml, int *pos)
 	return title;
 }
 
-static char *getvalue(char *xml, int *pos)
+static void set_value(char *xml, int *pos, map_t **map)
 {
 	int len, i;
 	for (i = *pos, len = 0; xml[i] != '<' && i < strlen(xml); ++i, ++len)
 		;
 	if (i >= strlen(xml))
-		return NULL;
-	char *value = calloc(len + 1, sizeof(char));
-	strncpy(value, xml + *pos, len);
+		return;
+
+	(*map)->payload = calloc(len + 1, sizeof(char));
+	strncpy((*map)->payload, xml + *pos, len);
+	(*map)->size = sizeof(char);
+	(*map)->n = strlen((*map)->payload);
 	*pos += len - 1;
-	return value;
 }
 
-static attr_t *getattrs(char *parsed, char **tag, int *n_attrs)
+static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs)
 {
 	attr_t *attrs;
 	char *iter = strtok(parsed, " ");
@@ -127,4 +115,25 @@ static attr_t *getattrs(char *parsed, char **tag, int *n_attrs)
 	*n_attrs = pos;
 	free(parsed);
 	return attrs;
+}
+
+static void set_tag(char *xml, map_t **map, int *closed, int *pos)
+{
+	(*pos)++;
+	(*map)->attrs = get_attrs(get_tag(xml, pos),
+						  &((*map)->tag), &((*map)->n_attrs));
+	*closed = 0;
+}
+
+static int check_closing_tag(char *xml, int *pos, char *tag, int *err)
+{
+	if (!strncmp(xml + *pos, "</", 2)) {
+		*pos += 2;
+		char *tmp = get_tag(xml, pos);
+		if (strcmp(tag, tmp))
+			*err = 1;
+		free(tmp);
+		return 1;
+	}
+	return 0;
 }

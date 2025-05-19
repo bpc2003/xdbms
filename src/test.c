@@ -212,38 +212,38 @@ void test_encode(void)
 	map->payload = (map_t []) {
 		{
 			.attrs = (attr_t []) {
-			  { .id = "id", .value = "0" }
+				{ .id = "id", .value = "0" }
 			},
 			.n_attrs = 1,
 			.tag = "document",
 			.payload = (map_t []) {
-			  {
-			    .attrs = NULL,
-			    .n_attrs = 0,
-			    .tag = "test",
-			    .payload = "test",
-			    .size = sizeof(char),
-			    .n = 4
-			  }
+				{
+					.attrs = NULL,
+					.n_attrs = 0,
+					.tag = "test",
+					.payload = "test",
+					.size = sizeof(char),
+					.n = 4
+				}
 			},
 			.size = sizeof(map_t),
 			.n = 1
 		},
 		{
 			.attrs = (attr_t []) {
-			  { .id = "id", .value = "1" }
+				{ .id = "id", .value = "1" }
 			},
 			.n_attrs = 1,
 			.tag = "document",
 			.payload = (map_t []) {
-			  {
-			    .attrs = NULL,
-			    .n_attrs = 0,
-			    .tag = "test",
-			    .payload = "test",
-			    .size = sizeof(char),
-			    .n = 4
-			  }
+				{
+					.attrs = NULL,
+					.n_attrs = 0,
+					.tag = "test",
+					.payload = "test",
+					.size = sizeof(char),
+					.n = 4
+				}
 			},
 			.size = sizeof(map_t),
 			.n = 1
