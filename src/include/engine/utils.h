@@ -6,7 +6,7 @@
 // dellist: deletes the provided table
 void dellist(tablist_t *list);
 
-/* hash: calculates the DJB2 hash of a string, 
+/* hash: calculates the DJB2 hash of a string,
  * and returns that mod TABLEN */
 int hash(char *str);
 

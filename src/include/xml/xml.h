@@ -3,21 +3,22 @@
 
 #include <stdio.h>
 
-
 typedef struct {
-  char *id;
-  char *value;
+	char *id;
+	char *value;
 } attr_t;
 
 typedef struct {
-  char *tag;
-  void *payload;
-  size_t size;
-  int n;
-  attr_t *attrs;
-  int n_attrs;
+	char *tag;
+	void *payload;
+	size_t size;
+	int n;
+	attr_t *attrs;
+	int n_attrs;
 } map_t;
 
+// TODO: make encode more reliant on helpers
+// to make function more private
 
 /* decode: decodes the provided xml statement into a map_t */
 map_t *decode(char *xml, int *pos, int *len);

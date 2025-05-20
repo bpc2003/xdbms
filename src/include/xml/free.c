@@ -2,8 +2,7 @@
 
 #include "xml.h"
 
-void freemap(map_t *map)
-{
+void freemap(map_t *map) {
 	if (map->n_attrs) {
 		for (int i = 0; i < map->n_attrs; ++i) {
 			free(map->attrs[i].id);
@@ -11,7 +10,7 @@ void freemap(map_t *map)
 		}
 		free(map->attrs);
 	}
-	if(map->size == sizeof(map_t)) {
+	if (map->size == sizeof(map_t)) {
 		for (int i = 0; i < map->n; ++i) {
 			map_t *pl = (map_t *)map->payload;
 			if (pl[i].n_attrs) {
@@ -28,8 +27,7 @@ void freemap(map_t *map)
 			free(pl[i].tag);
 		}
 		free(map->payload);
-	}
-	else
+	} else
 		free(map->payload);
 	free(map->tag);
 	free(map);

@@ -5,16 +5,14 @@
 #include "include/engine/engine.h"
 #include "include/xml/xml.h"
 
-void test_writedb(void)
-{
+void test_writedb(void) {
 	tablist_t *list = readdb("dbs/test.db");
 	writedb("dbs/test.db", list);
 	delkeys(list, -1, NULL, 0);
 	free(list);
 }
 
-void test_readdb(void)
-{
+void test_readdb(void) {
 	tablist_t *list = readdb("dbs/test.db");
 	tablist_t *indices = getkeys(list, -1, NULL, 0);
 	for (int i = 0; i < indices[0].len; ++i) {
@@ -27,11 +25,9 @@ void test_readdb(void)
 	free(list);
 }
 
-
-void test_setkeys(void)
-{
+void test_setkeys(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *pairs[] = { "name:John" };
+	char *pairs[] = {"name:John"};
 	if (setkeys(&list, -1, pairs, 1)) {
 		fprintf(stderr, "test_setkeys: failed\n");
 		return;
@@ -47,10 +43,9 @@ void test_setkeys(void)
 	free(list);
 }
 
-void test_setkeys_fail(void)
-{
+void test_setkeys_fail(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *pairs[] = { "namejohn" };
+	char *pairs[] = {"namejohn"};
 	if (!setkeys(&list, -1, pairs, 1)) {
 		fprintf(stderr, "test_setkeys_fail: failed\n");
 		return;
@@ -59,10 +54,9 @@ void test_setkeys_fail(void)
 	free(list);
 }
 
-void test_setkeys_multi_fail(void)
-{
+void test_setkeys_multi_fail(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *pairs[] = { "name:John", NULL };
+	char *pairs[] = {"name:John", NULL};
 	if (!setkeys(&list, -1, pairs, 2)) {
 		fprintf(stderr, "test_setkeys_multi_fail: failed\n");
 		return;
@@ -71,10 +65,9 @@ void test_setkeys_multi_fail(void)
 	free(list);
 }
 
-void test_setkeys_single(void)
-{
+void test_setkeys_single(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *pairs[] = { "name:Alice" };
+	char *pairs[] = {"name:Alice"};
 	if (setkeys(&list, 101, pairs, 1)) {
 		fprintf(stderr, "test_setkeys_single: failed\n");
 		return;
@@ -83,10 +76,9 @@ void test_setkeys_single(void)
 	free(list);
 }
 
-void test_setkeys_multipairs(void)
-{
+void test_setkeys_multipairs(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *pairs[] = { "name:Bob", "active:true" };
+	char *pairs[] = {"name:Bob", "active:true"};
 	if (setkeys(&list, 0, pairs, 2)) {
 		fprintf(stderr, "test_setkeys_multipairs: failed\n");
 		return;
@@ -95,10 +87,9 @@ void test_setkeys_multipairs(void)
 	free(list);
 }
 
-void test_delkeys(void)
-{
+void test_delkeys(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *keys[] = { "Row_1" };
+	char *keys[] = {"Row_1"};
 	if (delkeys(list, -1, keys, 1)) {
 		fprintf(stderr, "test_delkeys: failed\n");
 		return;
@@ -114,8 +105,7 @@ void test_delkeys(void)
 	free(list);
 }
 
-void test_delkeys_all(void)
-{
+void test_delkeys_all(void) {
 	tablist_t *list = readdb("dbs/test.db");
 	if (delkeys(list, -1, NULL, 0)) {
 		fprintf(stderr, "test_delkeys_all: failed\n");
@@ -124,10 +114,9 @@ void test_delkeys_all(void)
 	free(list);
 }
 
-void test_delkeys_fail(void)
-{
+void test_delkeys_fail(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *keys[] = { "Row_4" };
+	char *keys[] = {"Row_4"};
 	if (!delkeys(list, -1, keys, 1)) {
 		fprintf(stderr, "test_delkeys_fail: failed\n");
 		return;
@@ -136,8 +125,7 @@ void test_delkeys_fail(void)
 	free(list);
 }
 
-void test_delkeys_single(void)
-{
+void test_delkeys_single(void) {
 	tablist_t *list = readdb("dbs/test.db");
 	if (delkeys(list, 0, NULL, 0)) {
 		fprintf(stderr, "test_delkeys_single: failed\n");
@@ -147,10 +135,9 @@ void test_delkeys_single(void)
 	free(list);
 }
 
-void test_delkeys_multi(void)
-{
+void test_delkeys_multi(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *keys[] = { "Row_1", "Row_2" };
+	char *keys[] = {"Row_1", "Row_2"};
 	if (delkeys(list, -1, keys, 2)) {
 		fprintf(stderr, "test_delkeys_multi: failed\n");
 		return;
@@ -159,10 +146,9 @@ void test_delkeys_multi(void)
 	free(list);
 }
 
-void test_getkeys_multi(void)
-{
+void test_getkeys_multi(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *keys[] = { "Row_1", "Row_2" };
+	char *keys[] = {"Row_1", "Row_2"};
 	tablist_t *ret = getkeys(list, 0, keys, 2);
 	if (ret == NULL) {
 		fprintf(stderr, "test_getkeys_multi: failed\n");
@@ -175,10 +161,9 @@ void test_getkeys_multi(void)
 	free(list);
 }
 
-void test_getkeys_multi_fail(void)
-{
+void test_getkeys_multi_fail(void) {
 	tablist_t *list = readdb("dbs/test.db");
-	char *keys[] = { "Row_1", "Row_4" };
+	char *keys[] = {"Row_1", "Row_4"};
 	tablist_t *ret = getkeys(list, 0, keys, 2);
 	if (ret) {
 		fprintf(stderr, "test_getkeys_multi_fail: failed\n");
@@ -188,8 +173,7 @@ void test_getkeys_multi_fail(void)
 	free(list);
 }
 
-void test_getkeys(void)
-{
+void test_getkeys(void) {
 	tablist_t *list = readdb("dbs/test.db");
 	tablist_t *ret = getkeys(list, -1, NULL, 0);
 	if (!ret) {
@@ -201,54 +185,35 @@ void test_getkeys(void)
 	free(list);
 }
 
-void test_encode(void)
-{
+void test_encode(void) {
 	map_t *map = calloc(1, sizeof(map_t));
 	map->attrs = NULL;
 	map->n_attrs = 0;
 	map->tag = "documents";
 	map->size = sizeof(map_t);
 	map->n = 2;
-	map->payload = (map_t []) {
-		{
-			.attrs = (attr_t []) {
-				{ .id = "id", .value = "0" }
-			},
-			.n_attrs = 1,
-			.tag = "document",
-			.payload = (map_t []) {
-				{
-					.attrs = NULL,
-					.n_attrs = 0,
-					.tag = "test",
-					.payload = "test",
-					.size = sizeof(char),
-					.n = 4
-				}
-			},
-			.size = sizeof(map_t),
-			.n = 1
-		},
-		{
-			.attrs = (attr_t []) {
-				{ .id = "id", .value = "1" }
-			},
-			.n_attrs = 1,
-			.tag = "document",
-			.payload = (map_t []) {
-				{
-					.attrs = NULL,
-					.n_attrs = 0,
-					.tag = "test",
-					.payload = "test",
-					.size = sizeof(char),
-					.n = 4
-				}
-			},
-			.size = sizeof(map_t),
-			.n = 1
-		}
-	};
+	map->payload = (map_t[]){{.attrs = (attr_t[]){{.id = "id", .value = "0"}},
+							  .n_attrs = 1,
+							  .tag = "document",
+							  .payload = (map_t[]){{.attrs = NULL,
+													.n_attrs = 0,
+													.tag = "test",
+													.payload = "test",
+													.size = sizeof(char),
+													.n = 4}},
+							  .size = sizeof(map_t),
+							  .n = 1},
+							 {.attrs = (attr_t[]){{.id = "id", .value = "1"}},
+							  .n_attrs = 1,
+							  .tag = "document",
+							  .payload = (map_t[]){{.attrs = NULL,
+													.n_attrs = 0,
+													.tag = "test",
+													.payload = "test",
+													.size = sizeof(char),
+													.n = 4}},
+							  .size = sizeof(map_t),
+							  .n = 1}};
 
 	char *xml = encode(map, 1);
 	if (xml == NULL) {
@@ -260,10 +225,9 @@ void test_encode(void)
 	free(xml);
 }
 
-void test_decode(void)
-{
-	char *xml =
-		"<set id='0' test='true'><key1>value1</key1><key2>value2</key2></set>";
+void test_decode(void) {
+	char *xml = "<set id='0' "
+				"test='true'><key1>value1</key1><key2>value2</key2></set>";
 	int len = 0, start = 0;
 	map_t *map = decode(xml, &start, &len);
 	printf("%s\n", (xml = encode(map, 1)));
@@ -271,8 +235,7 @@ void test_decode(void)
 	freemap(map);
 }
 
-int main(void)
-{
+int main(void) {
 	// test_writedb();
 	// test_readdb();
 	// test_getkeys();

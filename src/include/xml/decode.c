@@ -10,10 +10,11 @@ static int check_closing_tag(char *xml, int *pos, char *tag, int *err);
 static void set_tag(char *xml, map_t **map, int *closed, int *pos);
 static void set_value(char *xml, int *pos, map_t **map);
 
-map_t *decode(char *xml, int *pos, int *len)
-{
-	if (*len) ++(*len);
-	else *len = 1;
+map_t *decode(char *xml, int *pos, int *len) {
+	if (*len)
+		++(*len);
+	else
+		*len = 1;
 
 	map_t *decoded = calloc(1, sizeof(map_t));
 	int err = 0, closed = 1;
@@ -28,10 +29,11 @@ map_t *decode(char *xml, int *pos, int *len)
 			map_t *ndec = decode(xml, &i, &(decoded->n));
 			decoded->size = sizeof(map_t);
 			if (decoded->n > 1)
-				decoded->payload = realloc(decoded->payload, decoded->n * sizeof(map_t));
+				decoded->payload =
+					realloc(decoded->payload, decoded->n * sizeof(map_t));
 			else
 				decoded->payload = calloc(1, sizeof(map_t));
-			((map_t *) decoded->payload)[decoded->n - 1] = *ndec;
+			((map_t *)decoded->payload)[decoded->n - 1] = *ndec;
 			free(ndec);
 		} else
 			set_value(xml, &i, &decoded);
@@ -43,8 +45,7 @@ map_t *decode(char *xml, int *pos, int *len)
 	return decoded;
 }
 
-static char *get_tag(char *xml, int *pos)
-{
+static char *get_tag(char *xml, int *pos) {
 	int len, i;
 	for (i = *pos, len = 0; xml[i] != '>' && i < strlen(xml); ++i, ++len)
 		;
@@ -56,8 +57,7 @@ static char *get_tag(char *xml, int *pos)
 	return title;
 }
 
-static void set_value(char *xml, int *pos, map_t **map)
-{
+static void set_value(char *xml, int *pos, map_t **map) {
 	int len, i;
 	for (i = *pos, len = 0; xml[i] != '<' && i < strlen(xml); ++i, ++len)
 		;
@@ -71,8 +71,7 @@ static void set_value(char *xml, int *pos, map_t **map)
 	*pos += len - 1;
 }
 
-static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs)
-{
+static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs) {
 	attr_t *attrs;
 	char *iter = strtok(parsed, " ");
 	*tag = calloc(strlen(iter) + 1, sizeof(char));
@@ -84,7 +83,7 @@ static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs)
 		free(parsed);
 		return NULL;
 	}
-	
+
 	int pos = 0;
 	do {
 		if (!iter)
@@ -92,14 +91,13 @@ static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs)
 		int i, len = strlen(iter);
 		for (i = 0; i < len && iter[i] != '='; ++i)
 			;
-		if (i >= len ||
-			(iter[i] == '=' && i >= len - 1) ||
+		if (i >= len || (iter[i] == '=' && i >= len - 1) ||
 			(iter[i + 1] != '\'' && iter[i + 1] != '"')) {
 			free(parsed);
 			free(attrs);
 			return NULL;
 		}
-		
+
 		char *name = calloc(i + 1, sizeof(char));
 		char *value = calloc(len - i, sizeof(char));
 		strncpy(name, iter, i);
@@ -110,23 +108,21 @@ static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs)
 			attrs = realloc(attrs, (*n_attrs *= 2) * sizeof(attr_t));
 		attrs[pos].id = name;
 		attrs[pos++].value = value;
-	} while((iter = strtok(NULL, " ")));
-	
+	} while ((iter = strtok(NULL, " ")));
+
 	*n_attrs = pos;
 	free(parsed);
 	return attrs;
 }
 
-static void set_tag(char *xml, map_t **map, int *closed, int *pos)
-{
+static void set_tag(char *xml, map_t **map, int *closed, int *pos) {
 	(*pos)++;
-	(*map)->attrs = get_attrs(get_tag(xml, pos),
-						  &((*map)->tag), &((*map)->n_attrs));
+	(*map)->attrs =
+		get_attrs(get_tag(xml, pos), &((*map)->tag), &((*map)->n_attrs));
 	*closed = 0;
 }
 
-static int check_closing_tag(char *xml, int *pos, char *tag, int *err)
-{
+static int check_closing_tag(char *xml, int *pos, char *tag, int *err) {
 	if (!strncmp(xml + *pos, "</", 2)) {
 		*pos += 2;
 		char *tmp = get_tag(xml, pos);
