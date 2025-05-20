@@ -268,20 +268,7 @@ void test_decode(void)
 	map_t *map = decode(xml, &start, &len);
 	printf("%s\n", (xml = encode(map, 1)));
 	free(xml);
-	// TODO: create a freemap function
-	free(map->tag);
-	free(map->attrs[0].id);
-	free(map->attrs[0].value);
-	free(map->attrs[1].id);
-	free(map->attrs[1].value);
-	free(map->attrs);
-	map_t *pl = (map_t *) map->payload;
-	free(pl[0].tag);
-	free(pl[1].tag);
-	free(pl[0].payload);
-	free(pl[1].payload);
-	free(map->payload);
-	free(map);
+	freemap(map);
 }
 
 int main(void)
