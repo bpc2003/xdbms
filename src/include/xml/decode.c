@@ -10,7 +10,14 @@ static int check_closing_tag(char *xml, int *pos, char *tag, int *err);
 static void set_tag(char *xml, map_t **map, int *closed, int *pos);
 static void set_value(char *xml, int *pos, map_t **map);
 
-map_t *decode(char *xml, int *pos, int *len) {
+static map_t *decode_helper(char *xml, int *pos, int *len);
+
+map_t *decode(char *xml) {
+	int start = 0, len = 0;
+	return decode_helper(xml, &start, &len);
+}
+
+static map_t *decode_helper(char *xml, int *pos, int *len) {
 	if (*len)
 		++(*len);
 	else
@@ -26,7 +33,7 @@ map_t *decode(char *xml, int *pos, int *len) {
 		} else if (xml[i] == '<' && closed)
 			set_tag(xml, &decoded, &closed, &i);
 		else if (xml[i] == '<' && !closed) {
-			map_t *ndec = decode(xml, &i, &(decoded->n));
+			map_t *ndec = decode_helper(xml, &i, &(decoded->n));
 			decoded->size = sizeof(map_t);
 			if (decoded->n > 1)
 				decoded->payload =

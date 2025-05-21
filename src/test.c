@@ -215,7 +215,7 @@ void test_encode(void) {
 							  .size = sizeof(map_t),
 							  .n = 1}};
 
-	char *xml = encode(map, 1);
+	char *xml = encode(map);
 	if (xml == NULL) {
 		fprintf(stderr, "test_encode: failed\n");
 		return;
@@ -228,9 +228,8 @@ void test_encode(void) {
 void test_decode(void) {
 	char *xml = "<set id='0' "
 				"test='true'><key1>value1</key1><key2>value2</key2></set>";
-	int len = 0, start = 0;
-	map_t *map = decode(xml, &start, &len);
-	printf("%s\n", (xml = encode(map, 1)));
+	map_t *map = decode(xml);
+	printf("%s\n", (xml = encode(map)));
 	free(xml);
 	freemap(map);
 }

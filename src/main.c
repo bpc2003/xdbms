@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "cmd.h"
-#include "include/mdb.h"
+#include "include/xdbms.h"
 
 int getid(char *selector);
 int printkeys(tablist_t *list, int id, char **keys, int klen);

@@ -17,14 +17,11 @@ typedef struct {
 	int n_attrs;
 } map_t;
 
-// TODO: make encode more reliant on helpers
-// to make function more private
-
 /* decode: decodes the provided xml statement into a map_t */
-map_t *decode(char *xml, int *pos, int *len);
+map_t *decode(char *xml);
 
 /* encode: encodes the provided map_t into a xml statement */
-char *encode(map_t *map, int len);
+char *encode(map_t *map);
 
 /* freemap: frees a map and its children */
 void freemap(map_t *map);

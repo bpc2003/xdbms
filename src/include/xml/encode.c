@@ -5,8 +5,11 @@
 #include "xml.h"
 
 static void check(char **str, int *len, int *used, int n);
+static char *encode_helper(map_t *map, int len);
 
-char *encode(map_t *map, int len) {
+char *encode(map_t *map) { return encode_helper(map, 1); }
+
+static char *encode_helper(map_t *map, int len) {
 	int slen = 128, used = 0;
 	char *str = calloc(slen, sizeof(char));
 
@@ -25,7 +28,7 @@ char *encode(map_t *map, int len) {
 		check(&str, &slen, &used, 1);
 		strcat(str, ">");
 		if (map[i].size == sizeof(map_t)) {
-			char *rt = encode((map_t *)map[i].payload, map[i].n);
+			char *rt = encode_helper((map_t *)map[i].payload, map[i].n);
 			if (rt == NULL)
 				return NULL;
 			check(&str, &slen, &used, strlen(rt));
