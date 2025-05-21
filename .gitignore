@@ -5,9 +5,6 @@
 # build files
 target/
 
-# lsp
-.ccls-cache
-
 # debug files
 *dbg
 core
