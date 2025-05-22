@@ -6,14 +6,14 @@
 #include "include/xml/xml.h"
 
 void test_writedb(void) {
-	tablist_t *list = readdb("dbs/test.db");
-	writedb("dbs/test.db", list);
+	tablist_t *list = readdb("dbs/test.xdb");
+	writedb("dbs/test.xdb", list);
 	delkeys(list, -1, NULL, 0);
 	free(list);
 }
 
 void test_readdb(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	tablist_t *indices = getkeys(list, -1, NULL, 0);
 	for (int i = 0; i < indices[0].len; ++i) {
 		printf("id: %d\n", i);
@@ -25,8 +25,14 @@ void test_readdb(void) {
 	free(list);
 }
 
+void test_readdb_fail(void) {
+	tablist_t *list = readdb("dbs/bad.xdb");
+	if (list != NULL)
+		fprintf(stderr, "test_readdb_fail: failed\n");
+}
+
 void test_setkeys(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *pairs[] = {"name:John"};
 	if (setkeys(&list, -1, pairs, 1)) {
 		fprintf(stderr, "test_setkeys: failed\n");
@@ -44,7 +50,7 @@ void test_setkeys(void) {
 }
 
 void test_setkeys_fail(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *pairs[] = {"namejohn"};
 	if (!setkeys(&list, -1, pairs, 1)) {
 		fprintf(stderr, "test_setkeys_fail: failed\n");
@@ -55,7 +61,7 @@ void test_setkeys_fail(void) {
 }
 
 void test_setkeys_multi_fail(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *pairs[] = {"name:John", NULL};
 	if (!setkeys(&list, -1, pairs, 2)) {
 		fprintf(stderr, "test_setkeys_multi_fail: failed\n");
@@ -66,7 +72,7 @@ void test_setkeys_multi_fail(void) {
 }
 
 void test_setkeys_single(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *pairs[] = {"name:Alice"};
 	if (setkeys(&list, 101, pairs, 1)) {
 		fprintf(stderr, "test_setkeys_single: failed\n");
@@ -77,7 +83,7 @@ void test_setkeys_single(void) {
 }
 
 void test_setkeys_multipairs(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *pairs[] = {"name:Bob", "active:true"};
 	if (setkeys(&list, 0, pairs, 2)) {
 		fprintf(stderr, "test_setkeys_multipairs: failed\n");
@@ -88,7 +94,7 @@ void test_setkeys_multipairs(void) {
 }
 
 void test_delkeys(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *keys[] = {"Row_1"};
 	if (delkeys(list, -1, keys, 1)) {
 		fprintf(stderr, "test_delkeys: failed\n");
@@ -106,7 +112,7 @@ void test_delkeys(void) {
 }
 
 void test_delkeys_all(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	if (delkeys(list, -1, NULL, 0)) {
 		fprintf(stderr, "test_delkeys_all: failed\n");
 		return;
@@ -115,7 +121,7 @@ void test_delkeys_all(void) {
 }
 
 void test_delkeys_fail(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *keys[] = {"Row_4"};
 	if (!delkeys(list, -1, keys, 1)) {
 		fprintf(stderr, "test_delkeys_fail: failed\n");
@@ -126,7 +132,7 @@ void test_delkeys_fail(void) {
 }
 
 void test_delkeys_single(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	if (delkeys(list, 0, NULL, 0)) {
 		fprintf(stderr, "test_delkeys_single: failed\n");
 		return;
@@ -136,7 +142,7 @@ void test_delkeys_single(void) {
 }
 
 void test_delkeys_multi(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *keys[] = {"Row_1", "Row_2"};
 	if (delkeys(list, -1, keys, 2)) {
 		fprintf(stderr, "test_delkeys_multi: failed\n");
@@ -147,7 +153,7 @@ void test_delkeys_multi(void) {
 }
 
 void test_getkeys_multi(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *keys[] = {"Row_1", "Row_2"};
 	tablist_t *ret = getkeys(list, 0, keys, 2);
 	if (ret == NULL) {
@@ -162,7 +168,7 @@ void test_getkeys_multi(void) {
 }
 
 void test_getkeys_multi_fail(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	char *keys[] = {"Row_1", "Row_4"};
 	tablist_t *ret = getkeys(list, 0, keys, 2);
 	if (ret) {
@@ -174,7 +180,7 @@ void test_getkeys_multi_fail(void) {
 }
 
 void test_getkeys(void) {
-	tablist_t *list = readdb("dbs/test.db");
+	tablist_t *list = readdb("dbs/test.xdb");
 	tablist_t *ret = getkeys(list, -1, NULL, 0);
 	if (!ret) {
 		fprintf(stderr, "test_getkeys: failed\n");
@@ -237,6 +243,7 @@ void test_decode(void) {
 int main(void) {
 	// test_writedb();
 	// test_readdb();
+	// test_readdb_fail();
 	// test_getkeys();
 	// test_getkeys_multi();
 	// test_getkeys_multi_fail();
@@ -252,8 +259,8 @@ int main(void) {
 	// test_delkeys_fail();
 	// test_delkeys_single();
 	// test_delkeys_multi();
-	test_encode();
-	test_decode();
+	// test_encode();
+	// test_decode();
 
 	exit(0);
 }

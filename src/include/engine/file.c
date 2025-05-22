@@ -1,8 +1,14 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "engine.h"
+
+static const uint32_t ND_MARK = 0xffffffff;
+static const uint32_t V_MARK = 0xfeffffff;
+
+static const char *HEAD = "XDBF";
 
 static int check(char **known, int len, char *str);
 static void freeknown(char ***known, int len);
@@ -23,13 +29,19 @@ tablist_t *readdb(char *filename) {
 	fread(buf, sizeof(char), sz, fp);
 	fclose(fp);
 
+	if (strncmp(buf, HEAD, 4)) {
+		free(buf);
+		free(list);
+		return NULL;
+	}
+
 	int tlen, vlen, t = 0, v = 0, l = -1;
 	char **ktags = calloc((tlen = 2), sizeof(char *));
 	char **kvalues = calloc((vlen = 2), sizeof(char *));
 	char *key, *value;
-	for (int i = 0; i < sz; ++i) {
-		if (buf[i] == ':') {
-			++i;
+	for (int i = 4; i < sz; ++i) {
+		if (checkmark(buf, i) == 2) {
+			i += 4;
 			value = readidx(buf, &i, &kvalues, &vlen, &v);
 			char *pair = calloc(strlen(key) + strlen(value) + 2, sizeof(char));
 			sprintf(pair, "%s:%s", key, value);
@@ -50,7 +62,7 @@ tablist_t *readdb(char *filename) {
 
 static char *readidx(char *buf, int *i, char ***known, int *len, int *pos) {
 	char *r = NULL;
-	if (checkmark(buf, *i)) {
+	if (checkmark(buf, *i) == 1) {
 		if (*len >= *pos) {
 			*len *= 2;
 			*known = realloc(*known, *len * sizeof(char *));
@@ -75,8 +87,11 @@ static char *readidx(char *buf, int *i, char ***known, int *len, int *pos) {
 }
 
 static int checkmark(char *buf, int pos) {
-	int marker = 0xffffffff;
-	return !memcmp(buf + pos, &marker, sizeof(int));
+	if (!memcmp(buf + pos, &ND_MARK, sizeof(uint32_t)))
+		return 1;
+	else if (!memcmp(buf + pos, &V_MARK, sizeof(uint32_t)))
+		return 2;
+	return 0;
 }
 
 static long getsz(FILE *fp) {
@@ -93,6 +108,7 @@ void writedb(char *filename, tablist_t *list) {
 	FILE *fp = fopen(filename, "wb");
 	if (fp == NULL)
 		return;
+	fwrite(HEAD, sizeof(char), 4, fp);
 	int tlen, vlen, t = 0, v = 0;
 	char **ktags = calloc((tlen = 2), sizeof(char *));
 	writeidx(&ktags, &tlen, &t, "documents", fp);
@@ -106,7 +122,7 @@ void writedb(char *filename, tablist_t *list) {
 			writeidx(&ktags, &tlen, &t, "document", fp);
 		for (int j = 0; indexes[i].tab[j].flag; ++j) {
 			writeidx(&ktags, &tlen, &t, indexes[i].tab[j].key, fp);
-			fputc(':', fp);
+			fwrite(&V_MARK, sizeof(uint32_t), 1, fp);
 			switch (indexes[i].tab[j].flag) {
 			case 1:
 				snprintf(buf, 64, "%g", indexes[i].tab[j].value.num);
@@ -131,8 +147,7 @@ void writedb(char *filename, tablist_t *list) {
 
 static void newtag(char *tag, FILE *fp) {
 	int len = strlen(tag);
-	int marker = 0xffffffff;
-	fwrite(&marker, sizeof(int), 1, fp);
+	fwrite(&ND_MARK, sizeof(uint32_t), 1, fp);
 	fwrite(&len, sizeof(int), 1, fp);
 	fwrite(tag, sizeof(char), len, fp);
 }

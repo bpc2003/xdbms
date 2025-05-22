@@ -3,21 +3,22 @@
 
 #include "xml.h"
 
-static char *get_tag(char *xml, int *pos);
+static char *get_tag(char *xml, unsigned long *pos);
 static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs);
 
-static int check_closing_tag(char *xml, int *pos, char *tag, int *err);
-static void set_tag(char *xml, map_t **map, int *closed, int *pos);
-static void set_value(char *xml, int *pos, map_t **map);
+static int check_closing_tag(char *xml, unsigned long *pos, char *tag, int *err);
+static void set_tag(char *xml, map_t **map, int *closed, unsigned long *pos);
+static void set_value(char *xml, unsigned long *pos, map_t **map);
 
-static map_t *decode_helper(char *xml, int *pos, int *len);
+static map_t *decode_helper(char *xml, unsigned long *pos, int *len);
 
 map_t *decode(char *xml) {
-	int start = 0, len = 0;
+	int len = 0;
+	unsigned long start = 0;
 	return decode_helper(xml, &start, &len);
 }
 
-static map_t *decode_helper(char *xml, int *pos, int *len) {
+static map_t *decode_helper(char *xml, unsigned long *pos, int *len) {
 	if (*len)
 		++(*len);
 	else
@@ -25,7 +26,7 @@ static map_t *decode_helper(char *xml, int *pos, int *len) {
 
 	map_t *decoded = calloc(1, sizeof(map_t));
 	int err = 0, closed = 1;
-	for (int i = *pos; i < strlen(xml); ++i) {
+	for (unsigned long i = *pos; i < strlen(xml); ++i) {
 		if (check_closing_tag(xml, &i, decoded->tag, &err)) {
 			if (!err)
 				*pos = i;
@@ -52,8 +53,9 @@ static map_t *decode_helper(char *xml, int *pos, int *len) {
 	return decoded;
 }
 
-static char *get_tag(char *xml, int *pos) {
-	int len, i;
+static char *get_tag(char *xml, unsigned long *pos) {
+	int len;
+	unsigned long i;
 	for (i = *pos, len = 0; xml[i] != '>' && i < strlen(xml); ++i, ++len)
 		;
 	if (i >= strlen(xml))
@@ -64,8 +66,9 @@ static char *get_tag(char *xml, int *pos) {
 	return title;
 }
 
-static void set_value(char *xml, int *pos, map_t **map) {
-	int len, i;
+static void set_value(char *xml, unsigned long *pos, map_t **map) {
+	int len;
+	unsigned long i;
 	for (i = *pos, len = 0; xml[i] != '<' && i < strlen(xml); ++i, ++len)
 		;
 	if (i >= strlen(xml))
@@ -122,14 +125,14 @@ static attr_t *get_attrs(char *parsed, char **tag, int *n_attrs) {
 	return attrs;
 }
 
-static void set_tag(char *xml, map_t **map, int *closed, int *pos) {
+static void set_tag(char *xml, map_t **map, int *closed, unsigned long *pos) {
 	(*pos)++;
 	(*map)->attrs =
 		get_attrs(get_tag(xml, pos), &((*map)->tag), &((*map)->n_attrs));
 	*closed = 0;
 }
 
-static int check_closing_tag(char *xml, int *pos, char *tag, int *err) {
+static int check_closing_tag(char *xml, unsigned long *pos, char *tag, int *err) {
 	if (!strncmp(xml + *pos, "</", 2)) {
 		*pos += 2;
 		char *tmp = get_tag(xml, pos);

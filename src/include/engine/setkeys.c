@@ -120,7 +120,7 @@ static int setkey(tablist_t **list, int id, char *pair) {
 
 static char **getkv(char *pair) {
 	char **kv = calloc(2, sizeof(char *));
-	int i = 0;
+	unsigned long i = 0;
 	while (pair[i] != ':' && i < strlen(pair))
 		i++;
 	if (i >= strlen(pair)) {

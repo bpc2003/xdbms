@@ -16,7 +16,7 @@ void dellist(tablist_t *list) {
 
 int hash(char *key) {
 	unsigned long h = 5381;
-	for (int i = 0; i < strlen(key); ++i)
+	for (unsigned long i = 0; i < strlen(key); ++i)
 		h = ((h << 5) + h) + key[i];
 	return h % TABLEN;
 }
