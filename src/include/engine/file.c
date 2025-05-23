@@ -6,7 +6,7 @@
 #include "engine.h"
 
 static const uint32_t ND_MARK = 0xffffffff;
-static const uint32_t V_MARK = 0xfeffffff;
+static const uint32_t V_MARK = 0xfefffffe;
 
 static const char *HEAD = "XDBF";
 

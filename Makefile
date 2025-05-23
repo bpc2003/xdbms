@@ -1,41 +1,25 @@
 CC = clang
 BUILD = target
-C_FLAGS = -Wall -lmdb -std=c11
-D_FLAGS = -L$(BUILD) -Wl,-rpath=$(BUILD) -O0
-L_FLAGS = -c -fPIC -Wall -Wextra
+C_FLAGS = -Wall -lxdbms -std=c11
+D_FLAGS = -L$(BUILD) -Wl,-rpath=$(BUILD)
+O_FLAGS = -c -fPIC -Wall -Wextra
 
-all: mdb
-mdb: lib
-	$(CC) src/main.c src/cmd.c $(D_FLAGS) -O2 $(C_FLAGS) -o $(BUILD)/mdb.out
+all: xdbms
+xdbms: lib
+	$(CC) src/main.c $(D_FLAGS) -O2 $(C_FLAGS) -o $(BUILD)/xdbms.out
 lib: $(BUILD)
-	$(CC) src/include/engine/*.c $(L_FLAGS)
-	$(CC) -shared -o $(BUILD)/libmdb.so *.o
+	$(CC) src/include/engine/*.c $(O_FLAGS) -std=c11
+	ar rcs $(BUILD)/libengine.a *.o
+	$(CC) src/include/init.c $(O_FLAGS) -std=c11
+	$(CC) -shared -o $(BUILD)/libxdbms.so init.o $(BUILD)/libengine.a\
+		-Wl,--exclude-libs,$(BUILD)/libengine.a -fvisibility=hidden -O2
 	rm *.o
+	rm $(BUILD)/libengine.a
 
-test: dev_lib
-	$(CC) src/test.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/test.out
-	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --log-file="mem_dbg" ./$(BUILD)/test.out
-	valgrind --tool=drd -s --log-file="thrd_dbg" ./$(BUILD)/test.out
+test: $(BUILD)
+	$(CC) tests/*.c src/include/engine/*.c unity/unity.c -o $(BUILD)/test.out
+	exec $(BUILD)/test.out
 	rm -rf $(BUILD)
-dev: dev_lib
-	$(CC) src/main.c src/cmd.c $(D_FLAGS) -g $(C_FLAGS) -o $(BUILD)/devmdb.out
-dev_lib: $(BUILD)
-	$(CC) src/include/engine/*.c src/include/xml/*.c $(L_FLAGS) -g
-	$(CC) -shared -o $(BUILD)/libmdb.so *.o
-	rm *.o
 
 $(BUILD):
 	mkdir $(BUILD)
-
-install: lib
-	cp src/lib/mdb.h /usr/include/mdb.h
-	mv $(BUILD)/libmdb.so /usr/lib/libmdb.so
-	ldconfig
-	$(CC) src/*.c -O2 $(C_FLAGS) -o /usr/bin/mdb
-	rm -rf $(BUILD)
-
-uninstall:
-	rm /usr/bin/mdb
-	rm /usr/lib/libmdb.so
-	rm /usr/include/mdb.h
-remove: uninstall
