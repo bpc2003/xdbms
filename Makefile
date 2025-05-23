@@ -17,8 +17,9 @@ lib: $(BUILD)
 	rm $(BUILD)/libengine.a
 
 test: $(BUILD)
-	$(CC) tests/*.c src/include/engine/*.c unity/unity.c -o $(BUILD)/test.out
-	exec $(BUILD)/test.out
+	$(CC) -I. tests/*.c src/include/engine/*.c unity/unity.c -o $(BUILD)/test.out
+	valgrind --tool=memcheck --log-file=mem_dbg $(BUILD)/test.out
+	valgrind --tool=drd -s --log-file=thrd_dbg $(BUILD)/test.out
 	rm -rf $(BUILD)
 
 $(BUILD):
