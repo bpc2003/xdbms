@@ -22,6 +22,9 @@ extern void test_getkeys_single(void);
 extern void test_getkeys_singlekey(void);
 extern void test_getkeys_fail(void);
 
+extern void test_xml_encode(void);
+extern void test_xml_decode(void);
+
 int main(void) {
 	UNITY_BEGIN();
 	RUN_TEST(test_readdb);
@@ -29,5 +32,7 @@ int main(void) {
 	RUN_TEST(test_getkeys_single);
 	RUN_TEST(test_getkeys_singlekey);
 	RUN_TEST(test_getkeys_fail);
+	RUN_TEST(test_xml_encode);
+	RUN_TEST(test_xml_decode);
 	return UNITY_END();
 }
